@@ -272,33 +272,45 @@ export const ApiModels: React.FC = () => {
               Hyperparameters & Temperature
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
+              <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs font-bold">
                   <label className="text-slate-300">Temperature</label>
-                  <span className="font-mono text-indigo-400 font-bold">{temperature}</span>
+                  <span className="font-mono text-indigo-400 font-bold bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-xs">
+                    {temperature.toFixed(1)}
+                  </span>
                 </div>
-                <input 
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.1"
-                  value={temperature}
-                  onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 border border-slate-700 mt-2"
-                />
+                <div className="relative flex items-center h-10">
+                  <input 
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.1"
+                    value={temperature}
+                    onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                    className="w-full h-2 rounded-lg cursor-pointer accent-indigo-500 focus:outline-none border border-slate-700/60"
+                    style={{
+                      background: `linear-gradient(to right, #6366f1 0%, #a855f7 ${(temperature / 2) * 100}%, #1e293b ${(temperature / 2) * 100}%, #1e293b 100%)`
+                    }}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300">Max Token Limit</label>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <label className="text-slate-300">Max Token Limit</label>
+                  <span className="font-mono text-purple-400 font-bold bg-purple-500/10 border border-purple-500/30 px-2.5 py-0.5 rounded-lg text-xs">
+                    {maxTokens} Tokens
+                  </span>
+                </div>
                 <input 
                   type="number"
                   min="100"
                   max="4000"
                   step="50"
                   value={maxTokens}
-                  onChange={(e) => setMaxTokens(parseInt(e.target.value, 10))}
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                  onChange={(e) => setMaxTokens(parseInt(e.target.value, 10) || 100)}
+                  className="w-full h-10 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>

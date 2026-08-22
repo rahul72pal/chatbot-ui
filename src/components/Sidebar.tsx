@@ -6,9 +6,7 @@ import {
   FileText, 
   Sliders, 
   BarChart2, 
-  Bug, 
   Settings, 
-  Home as HomeIcon,
   MessageSquare,
   LogOut,
   X
@@ -23,7 +21,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const links = [
-    { to: '/home', label: 'Home Page', icon: HomeIcon },
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/chatbots', label: 'Chatbots', icon: Bot },
     { to: '/conversations', label: 'Conversations', icon: MessageSquare },
@@ -33,17 +30,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group font-medium text-xs ${
+    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group font-medium text-xs border ${
       isActive
-        ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-white border border-indigo-500/40 shadow-glow-sm font-semibold'
-        : 'text-slate-400 hover:text-white hover:bg-slate-800/60 hover:border hover:border-slate-700/50'
-    }`;
-
-  const adminLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group font-medium text-xs ${
-      isActive
-        ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 font-semibold'
-        : 'text-slate-400 hover:text-purple-300 hover:bg-slate-800/60 hover:border hover:border-slate-700/50'
+        ? 'bg-gradient-to-r from-indigo-600/30 to-purple-600/20 text-white border-indigo-500/40 shadow-glow-sm font-semibold'
+        : 'text-slate-400 border-transparent hover:text-white hover:bg-slate-800/60 hover:border-slate-700/50'
     }`;
 
   const sidebarContent = (
@@ -51,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Brand Header */}
       <div className="p-3 flex flex-col gap-1 border-b border-slate-800/80 flex-shrink-0">
         <div 
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/')}
           className="flex items-center gap-3 cursor-pointer group"
         >
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-0.5 shadow-glow-sm group-hover:shadow-glow-md transition-all">
@@ -83,16 +73,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </NavLink>
           );
         })}
-
-        {/* Administration Section */}
-        <div className="mt-6 mb-2 px-3">
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">System Administration</span>
-        </div>
-
-        <NavLink to="/admin" className={adminLinkClass} onClick={onClose}>
-          <Bug className="w-4 h-4 text-slate-400 group-hover:text-purple-400 transition-colors" />
-          <span>Admin Console</span>
-        </NavLink>
       </div>
 
       {/* System Status & Footer */}

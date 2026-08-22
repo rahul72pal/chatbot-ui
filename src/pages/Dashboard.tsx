@@ -44,7 +44,8 @@ export const Dashboard: React.FC = () => {
     status: bot.is_public ? 'active' : 'inactive',
     model: bot.model || 'gpt-3.5-turbo',
     docsCount: bot.docsCount || 0,
-    conversationsCount: conversations.filter((c: any) => c.chatbot_id === bot.id).length,
+    conversationsCount: bot.conversations_count !== undefined ? bot.conversations_count : conversations.filter((c: any) => c.chatbot_id === bot.id).length,
+    messagesCount: bot.messages_count !== undefined ? bot.messages_count : 0,
     lastUpdated: bot.updated_at ? new Date(bot.updated_at).toLocaleDateString() : 'Just now'
   })).filter(b => b.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
@@ -167,8 +168,8 @@ export const Dashboard: React.FC = () => {
               <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
                 <th className="py-4 px-6 font-bold">Chatbot Name</th>
                 <th className="py-4 px-6 font-bold">Model String</th>
-                <th className="py-4 px-6 font-bold">Docs</th>
                 <th className="py-4 px-6 font-bold">Conversations</th>
+                <th className="py-4 px-6 font-bold">Messages</th>
                 <th className="py-4 px-6 font-bold">Last Updated</th>
                 <th className="py-4 px-6 text-right font-bold">Actions</th>
               </tr>
@@ -219,9 +220,9 @@ export const Dashboard: React.FC = () => {
                       </span>
                     </td>
 
-                    <td className="py-4 px-6 font-semibold text-slate-200">{bot.docsCount}</td>
-
                     <td className="py-4 px-6 font-semibold text-slate-200">{bot.conversationsCount}</td>
+
+                    <td className="py-4 px-6 font-semibold text-cyan-400">{bot.messagesCount}</td>
 
                     <td className="py-4 px-6 text-slate-400">{bot.lastUpdated}</td>
 

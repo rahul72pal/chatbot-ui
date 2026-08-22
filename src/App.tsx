@@ -19,7 +19,6 @@ import Documents from './pages/Documents';
 import ApiModels from './pages/ApiModels';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
-import AdminConsole from './pages/AdminConsole';
 import DedicatedPreview from './pages/DedicatedPreview';
 
 function App() {
@@ -61,7 +60,6 @@ function App() {
           <Route path="api-models" element={<ApiModels />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />
-          <Route path="admin" element={<AdminConsole />} />
           
           {/* Fallback to Dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
