@@ -24,6 +24,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatbotApi, documentApi } from '../api';
 import { useToast } from '../hooks/useToast';
+import { BASE_URL } from '../utils/apiClient';
 
 interface FormValues {
   botName: string;
@@ -193,7 +194,7 @@ export const Builder: React.FC = () => {
   };
 
   const embedCode = `<script 
-  src="http://localhost:8000/widget.js" 
+  src="${BASE_URL}/widget.js" 
   data-chatbot-id="${botId || 'YOUR_BOT_ID'}" 
   defer>
 </script>`;

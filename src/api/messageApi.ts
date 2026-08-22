@@ -1,4 +1,4 @@
-import { apiClient } from '../utils/apiClient';
+import { apiClient, BASE_URL } from '../utils/apiClient';
 
 export interface SendMessagePayload {
   message: string;
@@ -22,7 +22,7 @@ export const messageApi = {
     onEvent: (event: any) => void
   ) => {
     const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-    const apiBase = 'http://localhost:8000';
+    const apiBase = BASE_URL;
     const response = await fetch(`${apiBase}/message/stream`, {
       method: 'POST',
       headers: {

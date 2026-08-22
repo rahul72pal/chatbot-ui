@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { chatbotApi } from '../api';
 import ChatWindow from '../components/ChatWindow';
+import { BASE_URL } from '../utils/apiClient';
 
 export const DedicatedPreview: React.FC = () => {
   const { botId = '' } = useParams<{ botId: string }>();
@@ -56,7 +57,7 @@ export const DedicatedPreview: React.FC = () => {
   }, [openAutomatically, popAfterSeconds]);
 
   const embedScript = `<script 
-  src="http://localhost:8000/widget.js" 
+  src="${BASE_URL}/widget.js" 
   data-chatbot-id="${botId || 'YOUR_BOT_ID'}" 
   defer>
 </script>`;

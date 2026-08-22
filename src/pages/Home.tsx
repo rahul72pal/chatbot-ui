@@ -15,6 +15,7 @@ import {
   Headphones,
   Sliders
 } from 'lucide-react';
+import { BASE_URL } from '../utils/apiClient';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ export const Home: React.FC = () => {
   const token = localStorage.getItem('access_token');
 
   const sampleEmbedScript = `<script 
-  src="http://localhost:8000/widget.js" 
+  src="${BASE_URL}/widget.js" 
   data-chatbot-id="YOUR_CHATBOT_ID" 
   defer>
 </script>`;
