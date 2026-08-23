@@ -63,11 +63,19 @@ export const Documents: React.FC = () => {
     }
     const file = e.target.files[0];
 
-    // Enforce 10 MB file size limit
-    const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+    // Enforce 2 MB file size limit
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024;
     if (file.size > MAX_SIZE_BYTES) {
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-      alert(`File size (${fileSizeMB} MB) exceeds the 10 MB limit. Please select a smaller PDF document.`);
+      toast.error(`File size (${fileSizeMB} MB) exceeds the 2 MB limit. Please select a smaller PDF document.`, 'File Too Large');
+      e.target.value = '';
+      return;
+    }
+
+    // Enforce max 2 linked documents per chatbot limit
+    const chatbotDocs = documents.filter((d: any) => d.chatbot_id === selectedChatbotId);
+    if (chatbotDocs.length >= 2) {
+      toast.error('Limit reached: Each chatbot can only be linked to a maximum of 2 documents.', 'Limit Exceeded');
       e.target.value = '';
       return;
     }

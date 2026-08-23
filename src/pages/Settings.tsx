@@ -40,7 +40,7 @@ export const Settings: React.FC = () => {
           </span>
         </div>
         <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">
-          Workspace Settings
+          Workspace Settings (WIP)
         </h1>
         <p className="text-slate-400 text-xs md:text-sm mt-1">
           Configure domain CORS whitelists, account security, and team profile controls.

@@ -39,14 +39,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const sidebarContent = (
     <>
       {/* Brand Header */}
-      <div className="p-3 flex flex-col gap-1 border-b border-slate-800/80 flex-shrink-0">
+      <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800/80 flex-shrink-0">
         <div 
           onClick={() => navigate('/')}
           className="flex items-center gap-3 cursor-pointer group"
         >
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-0.5 shadow-glow-sm group-hover:shadow-glow-md transition-all">
-            <div className="w-full h-full bg-[#090D16] rounded-[10px] flex items-center justify-center">
-              <Bot className="w-4 h-4 text-indigo-400" />
+            <div className="w-full h-full bg-[#090D16] rounded-[10px] flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
           </div>
           <div>

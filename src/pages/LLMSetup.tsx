@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Sparkles, Server, Key, AlertCircle, Bot, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
+import { ArrowRight, Sparkles, Server, Key, AlertCircle, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
 import { configApi, messageApi, chatbotApi } from '../api';
 import { useToast } from '../hooks/useToast';
 
@@ -178,8 +178,8 @@ export const LLMSetup: React.FC = () => {
         {/* Header */}
         <header className="flex flex-col items-center mb-8 w-full text-center">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 p-0.5 shadow-glow-md mb-4">
-            <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center text-indigo-400">
-              <Bot className="w-6 h-6" />
+            <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
           </div>
           <h1 className="font-display text-2xl font-bold text-white mb-1 tracking-tight">

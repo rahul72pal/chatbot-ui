@@ -80,8 +80,8 @@ export const Home: React.FC = () => {
             className="flex items-center gap-3 cursor-pointer group"
           >
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-0.5 shadow-glow-sm group-hover:shadow-glow-md transition-all duration-300">
-              <div className="w-full h-full bg-[#0F172A] rounded-[10px] flex items-center justify-center">
-                <Bot className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
+              <div className="w-full h-full bg-[#0F172A] rounded-[10px] flex items-center justify-center overflow-hidden">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
               </div>
             </div>
             <div>
