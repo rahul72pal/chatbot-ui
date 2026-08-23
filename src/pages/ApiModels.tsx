@@ -18,11 +18,6 @@ export const ApiModels: React.FC = () => {
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1000);
 
-  // Per-User Qdrant Vector DB states
-  const [qdrantUrl, setQdrantUrl] = useState('');
-  const [qdrantApiKey, setQdrantApiKey] = useState('');
-  const [qdrantCollectionName, setQdrantCollectionName] = useState('');
-
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
 
@@ -50,9 +45,6 @@ export const ApiModels: React.FC = () => {
       if (existingConfig.base_url) setBaseUrl(existingConfig.base_url);
       if (existingConfig.temperature !== undefined) setTemperature(existingConfig.temperature);
       if (existingConfig.max_tokens !== undefined) setMaxTokens(existingConfig.max_tokens);
-      if (existingConfig.qdrant_url) setQdrantUrl(existingConfig.qdrant_url);
-      if (existingConfig.qdrant_api_key) setQdrantApiKey(existingConfig.qdrant_api_key);
-      if (existingConfig.qdrant_collection_name) setQdrantCollectionName(existingConfig.qdrant_collection_name);
     }
   }, [existingConfig]);
 
@@ -86,10 +78,6 @@ export const ApiModels: React.FC = () => {
       temperature: Number(temperature),
       max_tokens: Number(maxTokens),
     };
-    
-    if (qdrantApiKey) payload.qdrant_api_key = qdrantApiKey;
-    if (qdrantCollectionName) payload.qdrant_collection_name = qdrantCollectionName;
-    if (qdrantUrl) payload.qdrant_url = qdrantUrl;
     
     const targetId = editingConfigId || existingConfig?.id;
     saveConfigMutation.mutate({ id: targetId, payload });
@@ -217,51 +205,6 @@ export const ApiModels: React.FC = () => {
                   {isCopied ? <span className="text-[10px] text-emerald-400 font-sans font-bold">Copied!</span> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
-            </div>
-          </section>
-
-          {/* User Qdrant Vector DB Credentials */}
-          <section className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 space-y-5">
-            <h2 className="font-display font-bold text-base text-white flex items-center gap-2.5 border-b border-slate-800 pb-4">
-              <Database className="w-5 h-5 text-cyan-400" />
-              Qdrant Vector Database Credentials
-            </h2>
-            <p className="text-xs text-slate-400">
-              Provide your personal Qdrant API Key and Collection Name to route vector document search to your custom Qdrant DB.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300">Qdrant API Key</label>
-                <input 
-                  type="password"
-                  value={qdrantApiKey}
-                  onChange={(e) => setQdrantApiKey(e.target.value)}
-                  placeholder="User Qdrant API Key"
-                  className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 font-mono"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300">Collection Name</label>
-                <input 
-                  type="text"
-                  value={qdrantCollectionName}
-                  onChange={(e) => setQdrantCollectionName(e.target.value)}
-                  placeholder="e.g. my_company_docs"
-                  className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 font-mono"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300">Qdrant Server URL (Optional)</label>
-              <input 
-                type="url"
-                value={qdrantUrl}
-                onChange={(e) => setQdrantUrl(e.target.value)}
-                placeholder="e.g. https://xyz.qdrant.tech or http://localhost:6333"
-                className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 font-mono"
-              />
             </div>
           </section>
 
