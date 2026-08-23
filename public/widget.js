@@ -477,5 +477,9 @@
       });
   }
 
-  initializeWidgetApp();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeWidgetApp);
+  } else {
+    initializeWidgetApp();
+  }
 })();

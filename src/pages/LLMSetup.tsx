@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, Sparkles, Server, Key, AlertCircle, Bot, CheckCircle2, Loader2, RefreshCw, Database } from 'lucide-react';
+import { ArrowRight, Sparkles, Server, Key, AlertCircle, Bot, CheckCircle2, Loader2, RefreshCw } from 'lucide-react';
 import { configApi, messageApi, chatbotApi } from '../api';
 import { useToast } from '../hooks/useToast';
 
@@ -18,11 +18,6 @@ export const LLMSetup: React.FC = () => {
   
   // Common fields
   const [apiKey, setApiKey] = useState('');
-
-  // Per-User Qdrant Vector DB fields
-  const [qdrantUrl, setQdrantUrl] = useState('');
-  const [qdrantApiKey, setQdrantApiKey] = useState('');
-  const [qdrantCollectionName, setQdrantCollectionName] = useState('');
 
   const [errorMsg, setErrorMsg] = useState('');
   const [editingConfigId, setEditingConfigId] = useState<string | null>(null);
@@ -75,15 +70,6 @@ export const LLMSetup: React.FC = () => {
       }
       if (existingConfig.api_key) {
         setApiKey(existingConfig.api_key);
-      }
-      if (existingConfig.qdrant_url) {
-        setQdrantUrl(existingConfig.qdrant_url);
-      }
-      if (existingConfig.qdrant_api_key) {
-        setQdrantApiKey(existingConfig.qdrant_api_key);
-      }
-      if (existingConfig.qdrant_collection_name) {
-        setQdrantCollectionName(existingConfig.qdrant_collection_name);
       }
     }
   }, [existingConfig]);
@@ -165,10 +151,6 @@ export const LLMSetup: React.FC = () => {
       config_type: configType,
       api_key: apiKey,
     };
-
-    if (qdrantApiKey) payload.qdrant_api_key = qdrantApiKey;
-    if (qdrantCollectionName) payload.qdrant_collection_name = qdrantCollectionName;
-    if (qdrantUrl) payload.qdrant_url = qdrantUrl;
 
     if (configType === 'provider') {
       payload.provider = provider;
@@ -478,51 +460,6 @@ export const LLMSetup: React.FC = () => {
                       onChange={(e) => setApiKey(e.target.value)}
                       placeholder="Paste your API secret key"
                       className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Per-User Qdrant Vector DB Configuration */}
-                <div className="pt-3 border-t border-slate-800/80 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-200">
-                    <Database className="w-4 h-4 text-cyan-400" />
-                    <span>Qdrant Vector Database Credentials</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">
-                    Provide your Qdrant API Key & Collection Name so document search uses your personal Qdrant DB.
-                  </p>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Qdrant API Key</label>
-                      <input 
-                        type="password"
-                        value={qdrantApiKey}
-                        onChange={(e) => setQdrantApiKey(e.target.value)}
-                        placeholder="User Qdrant API Key"
-                        className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 font-mono"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Collection Name</label>
-                      <input 
-                        type="text"
-                        value={qdrantCollectionName}
-                        onChange={(e) => setQdrantCollectionName(e.target.value)}
-                        placeholder="e.g. my_company_docs"
-                        className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Qdrant Server URL (Optional)</label>
-                    <input 
-                      type="url"
-                      value={qdrantUrl}
-                      onChange={(e) => setQdrantUrl(e.target.value)}
-                      placeholder="e.g. https://xyz.qdrant.tech or http://localhost:6333"
-                      className="w-full text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2.5 focus:outline-none focus:border-indigo-500 font-mono"
                     />
                   </div>
                 </div>
