@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowRight, Eye, EyeOff, AlertCircle, Bot } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { authApi } from '../api';
 import { useToast } from '../hooks/useToast';
@@ -60,8 +60,8 @@ export const Signup: React.FC = () => {
             onClick={() => navigate('/home')}
             className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-0.5 shadow-glow-md mb-4 cursor-pointer group"
           >
-            <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
-              <Bot className="w-6 h-6" />
+            <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
           </div>
           <h1 className="font-display text-2xl font-bold text-white mb-1 tracking-tight">Create your account</h1>

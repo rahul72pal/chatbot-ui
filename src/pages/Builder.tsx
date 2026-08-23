@@ -159,7 +159,17 @@ export const Builder: React.FC = () => {
   const currentAvatar = watch('avatar');
   const currentBotName = watch('botName');
 
+  // Fetch all chatbots for account limit check
+  const { data: chatbots = [] } = useQuery<any[]>({
+    queryKey: ['chatbots'],
+    queryFn: () => chatbotApi.getChatbots() as Promise<any[]>,
+  });
+
   const onSubmit = (values: FormValues) => {
+    if (isNewBot && chatbots.length >= 5) {
+      toast.error('Limit reached: You can create a maximum of 5 chatbots per account.', 'Limit Reached');
+      return;
+    }
     saveChatbotMutation.mutate(values);
   };
 
@@ -212,6 +222,23 @@ export const Builder: React.FC = () => {
       return;
     }
     const file = e.target.files[0];
+
+    // Enforce 2 MB size limit
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE_BYTES) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+      toast.error(`File size (${fileSizeMB} MB) exceeds the 2 MB limit. Please select a smaller PDF document.`, 'File Too Large');
+      e.target.value = '';
+      return;
+    }
+
+    // Enforce max 2 linked documents per chatbot
+    if (documents.length >= 2) {
+      toast.error('Limit reached: Each chatbot can only be linked to a maximum of 2 documents.', 'Limit Exceeded');
+      e.target.value = '';
+      return;
+    }
+
     setIsUploading(true);
 
     const formData = new FormData();
