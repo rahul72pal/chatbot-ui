@@ -56,6 +56,7 @@ export const LLMSetup: React.FC = () => {
       setEditingConfigId(existingConfig.id);
       if (existingConfig.config_type === 'custom') {
         setConfigType('custom');
+        setProvider('custom' as any);
         setCustomName(existingConfig.name || '');
         setCustomBaseUrl(existingConfig.base_url || '');
         setCustomModel(existingConfig.model || '');
@@ -160,9 +161,11 @@ export const LLMSetup: React.FC = () => {
         setErrorMsg('Please fill in all custom endpoint fields.');
         return;
       }
+      payload.provider = 'custom';
       payload.name = customName;
       payload.base_url = customBaseUrl;
       payload.model = customModel;
+      payload.default_model = customModel;
     }
 
     const targetId = editingConfigId || existingConfig?.id;

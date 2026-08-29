@@ -37,7 +37,11 @@ export const ApiModels: React.FC = () => {
   useEffect(() => {
     if (existingConfig) {
       setEditingConfigId(existingConfig.id);
-      if (existingConfig.provider) setProvider(existingConfig.provider);
+      if (existingConfig.config_type === 'custom') {
+        setProvider('custom');
+      } else if (existingConfig.provider) {
+        setProvider(existingConfig.provider);
+      }
       if (existingConfig.default_model || existingConfig.model) {
         setModelName(existingConfig.default_model || existingConfig.model);
       }

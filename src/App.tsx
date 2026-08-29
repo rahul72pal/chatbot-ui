@@ -5,6 +5,7 @@ import AppLayout from './layouts/AppLayout';
 
 // Protection Wrapper
 import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
 
 // Page Views
 import Home from './pages/Home';
@@ -27,8 +28,22 @@ function App() {
       <Routes>
         {/* Public SaaS Home & Authentication & Standalone Preview Routes */}
         <Route path="/home" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route 
+          path="/login" 
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } 
+        />
+        <Route 
+          path="/signup" 
+          element={
+            <PublicRoute>
+              <Signup />
+            </PublicRoute>
+          } 
+        />
         <Route path="/preview/:botId" element={<DedicatedPreview />} />
         <Route path="/chatbot/:botId/preview" element={<DedicatedPreview />} />
         

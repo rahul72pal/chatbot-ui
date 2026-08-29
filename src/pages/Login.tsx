@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { authApi, configApi } from '../api';
+import { useMutation } from '@tanstack/react-query';
+import { authApi } from '../api';
 import { useToast } from '../hooks/useToast';
 
 export const Login: React.FC = () => {
@@ -11,31 +11,13 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const toast = useToast();
 
   const loginMutation = useMutation({
     mutationFn: (payload: any) => authApi.login(payload),
-    onSuccess: async (data: any) => {
+    onSuccess: (data: any) => {
       localStorage.setItem('access_token', data.access_token);
-      queryClient.invalidateQueries({ queryKey: ['llmConfigs'] });
       toast.success('Signed in successfully!', 'Welcome Back');
-      try {
-        const configs: any = await configApi.getLLMConfigs();
-        const configsList = Array.isArray(configs)
-          ? configs
-          : (configs as any)?.data && Array.isArray((configs as any).data)
-          ? (configs as any).data
-          : [];
-        const isConfigured = configsList.length > 0 && !!configsList[0].api_key;
-        if (!isConfigured) {
-          navigate('/llm-setup');
-          return;
-        }
-      } catch (err) {
-        navigate('/llm-setup');
-        return;
-      }
       navigate('/');
     },
     onError: (err: any) => {
