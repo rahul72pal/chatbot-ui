@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-3">
         {/* Home Page Link */}
         <button
-          onClick={() => navigate('/home')}
+          onClick={() => navigate('/')}
           className="hidden sm:flex items-center gap-1.5 text-xs text-slate-300 hover:text-white font-medium bg-slate-800/80 hover:bg-slate-700/80 px-3 py-1.5 rounded-xl border border-slate-700/80 transition-all"
         >
           <HomeIcon className="w-3.5 h-3.5 text-indigo-400" />

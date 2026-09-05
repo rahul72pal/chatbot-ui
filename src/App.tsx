@@ -27,7 +27,8 @@ function App() {
     <Router>
       <Routes>
         {/* Public SaaS Home & Authentication & Standalone Preview Routes */}
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route 
           path="/login" 
           element={
@@ -59,14 +60,13 @@ function App() {
 
         {/* Private Workspace Application Layout */}
         <Route 
-          path="/" 
           element={
             <ProtectedRoute>
               <AppLayout />
             </ProtectedRoute>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="chatbots" element={<Dashboard />} />
           <Route path="builder" element={<Builder />} />
           <Route path="conversations" element={<Conversations />} />
@@ -77,7 +77,7 @@ function App() {
           <Route path="settings" element={<Settings />} />
           
           {/* Fallback to Dashboard */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
     </Router>

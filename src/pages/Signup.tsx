@@ -57,7 +57,7 @@ export const Signup: React.FC = () => {
         {/* Header */}
         <header className="flex flex-col items-center mb-8 w-full text-center">
           <div 
-            onClick={() => navigate('/home')}
+            onClick={() => navigate('/')}
             className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 p-0.5 shadow-glow-md mb-4 cursor-pointer group"
           >
             <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">

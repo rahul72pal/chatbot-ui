@@ -21,7 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const links = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/chatbots', label: 'Chatbots', icon: Bot },
     { to: '/conversations', label: 'Conversations', icon: MessageSquare },
     { to: '/documents', label: 'Knowledge Base', icon: FileText },

@@ -8,7 +8,7 @@ export const AppLayout: React.FC = () => {
   const location = useLocation();
 
   const getPageTitle = (pathname: string) => {
-    if (pathname === '/' || pathname === '/chatbots') return 'Chatbot Workspace';
+    if (pathname === '/' || pathname === '/dashboard' || pathname === '/chatbots') return 'Chatbot Workspace';
     if (pathname.startsWith('/builder')) return 'Chatbot Builder';
     if (pathname.startsWith('/documents')) return 'Knowledge Base & RAG Documents';
     if (pathname.startsWith('/api-models')) return 'LLM Configuration';
