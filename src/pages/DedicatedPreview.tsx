@@ -6,12 +6,12 @@ import {
   Bot, 
   Copy, 
   Check, 
-  Code,
-  Zap,
-  X,
-  Headphones,
-  HelpCircle,
-  ShoppingBag
+  Code, 
+  Zap, 
+  X, 
+  Headphones, 
+  HelpCircle, 
+  ShoppingBag 
 } from 'lucide-react';
 import { chatbotApi } from '../api';
 import ChatWindow from '../components/ChatWindow';
@@ -39,7 +39,7 @@ export const DedicatedPreview: React.FC = () => {
 
   const name = chatbot?.name || 'Support Assistant';
   const welcomeMessage = chatbot?.welcome_message || chatbot?.description || 'Hi! How can I help you today?';
-  const themeColor = chatbot?.theme_color || '#6366F1';
+  const themeColor = chatbot?.theme_color || '#4F46E5';
   const avatar = chatbot?.avatar_icon || chatbot?.avatar_url || 'support';
   const bubbleStyle = chatbot?.bubble_style || 'rounded';
   const position = chatbot?.position || 'right';
@@ -69,7 +69,7 @@ export const DedicatedPreview: React.FC = () => {
   };
 
   const getLauncherClasses = () => {
-    const base = "w-14 h-14 shadow-glow-md flex items-center justify-center cursor-pointer transition-transform hover:scale-110 duration-200 text-white z-40 relative";
+    const base = "w-14 h-14 shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-110 duration-200 text-white z-40 relative";
     if (bubbleStyle === 'pill') return `${base} rounded-full`;
     if (bubbleStyle === 'square') return `${base} rounded-xl`;
     return `${base} rounded-2xl`;
@@ -83,28 +83,28 @@ export const DedicatedPreview: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#090D16] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-[#070B14] flex items-center justify-center text-[#F3F6FF]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs font-medium text-slate-400">Loading Dedicated Chatbot Sandbox...</p>
+          <div className="w-8 h-8 border-3 border-[#4F46E5] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs font-medium text-[#71829F]">Loading Dedicated Chatbot Sandbox...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#070B14] text-[#F3F6FF] flex flex-col font-sans relative overflow-x-hidden">
       {/* Top Navbar */}
-      <header className="bg-[#0B0F19]/90 backdrop-blur-xl border-b border-slate-800/80 px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-2xl">
+      <header className="bg-[#091121] border-b border-[#1C2C4B] px-6 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-2xl">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate(`/builder?botId=${botId}`)}
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors bg-slate-800/80 hover:bg-slate-700/80 px-3 py-1.5 rounded-xl border border-slate-700 font-medium"
+            className="flex items-center gap-1.5 text-xs text-[#A3B3CF] hover:text-[#F3F6FF] transition-colors bg-[#101D39] hover:bg-[#142342] px-3.5 py-2 rounded-xl border border-[#1C2C4B] font-medium"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4 text-indigo-400" />
             Back to Builder
           </button>
-          <div className="h-5 w-px bg-slate-800 hidden sm:block" />
+          <div className="h-5 w-px bg-[#1C2C4B] hidden sm:block" />
           <div className="flex items-center gap-3">
             <div 
               className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold shadow-sm"
@@ -113,25 +113,25 @@ export const DedicatedPreview: React.FC = () => {
               <Bot className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-white flex items-center gap-2">
+              <h1 className="text-sm font-bold text-[#F3F6FF] flex items-center gap-2">
                 {name}
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#10D6A0]/10 text-[#10D6A0] border border-[#10D6A0]/20 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10D6A0] animate-pulse"></span>
                   Sandbox Active
                 </span>
               </h1>
-              <p className="text-[11px] text-slate-400 truncate max-w-xs">ID: {botId}</p>
+              <p className="text-[11px] text-[#71829F] truncate max-w-xs">ID: {botId}</p>
             </div>
           </div>
         </div>
 
         {/* Switcher & Copy */}
         <div className="flex items-center gap-3">
-          <div className="flex bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+          <div className="flex bg-[#101D39] p-1 rounded-xl border border-[#1C2C4B] text-xs">
             <button
               onClick={() => setActiveTab('preview')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
-                activeTab === 'preview' ? 'bg-indigo-600 text-white shadow-glow-sm' : 'text-slate-400 hover:text-white'
+                activeTab === 'preview' ? 'bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-glow-sm' : 'text-[#71829F] hover:text-[#F3F6FF]'
               }`}
             >
               Interactive Preview
@@ -139,7 +139,7 @@ export const DedicatedPreview: React.FC = () => {
             <button
               onClick={() => setActiveTab('embed')}
               className={`px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5 ${
-                activeTab === 'embed' ? 'bg-indigo-600 text-white shadow-glow-sm' : 'text-slate-400 hover:text-white'
+                activeTab === 'embed' ? 'bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-glow-sm' : 'text-[#71829F] hover:text-[#F3F6FF]'
               }`}
             >
               <Code className="w-3.5 h-3.5" />
@@ -149,9 +149,9 @@ export const DedicatedPreview: React.FC = () => {
 
           <button
             onClick={copyEmbed}
-            className="hidden md:flex items-center gap-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-glow-sm"
+            className="hidden md:flex items-center gap-1.5 btn-primary-gradient text-xs font-bold px-4 py-2 rounded-xl"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-4 h-4 text-[#10D6A0]" /> : <Copy className="w-4 h-4" />}
             {copied ? 'Copied!' : 'Copy Script Tag'}
           </button>
         </div>
@@ -162,58 +162,58 @@ export const DedicatedPreview: React.FC = () => {
         {activeTab === 'preview' ? (
           <div className="w-full flex-1 flex flex-col gap-6">
             {/* Simulated Host Web Page Canvas */}
-            <div className="w-full glass-card border border-slate-800/80 rounded-3xl p-8 md:p-12 relative overflow-hidden flex flex-col items-center justify-center text-center shadow-2xl min-h-[500px]">
+            <div className="w-full bg-[#0D1730] border border-[#1C2C4B] rounded-3xl p-8 md:p-12 relative overflow-hidden flex flex-col items-center justify-center text-center shadow-2xl min-h-[500px]">
               <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#818CF8 1px, transparent 1px)', backgroundSize: '28px 28px' }}></div>
 
               <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full text-xs font-semibold text-indigo-300 mb-6">
-                <Zap className="w-3.5 h-3.5 text-cyan-400" /> Simulated Website Canvas
+                <Zap className="w-3.5 h-3.5 text-[#22D3EE]" /> Simulated Website Canvas
               </div>
 
-              <h2 className="font-display text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight mb-4 max-w-3xl">
+              <h2 className="font-display text-3xl md:text-5xl font-extrabold text-[#F3F6FF] leading-tight tracking-tight mb-4 max-w-3xl">
                 Experience your chatbot widget live in real time
               </h2>
 
-              <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+              <p className="text-[#A3B3CF] text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
                 Click the floating chat launcher in the bottom <strong className="text-white capitalize">{position}</strong> corner to open and test your AI chatbot.
               </p>
 
               <div className="flex flex-wrap justify-center gap-4">
                 <button 
                   onClick={() => setIsOpen(!isOpen)}
-                  className="px-6 py-3.5 rounded-xl font-bold text-xs bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:opacity-95 text-white shadow-glow-md transition-all"
+                  className="px-6 py-3.5 rounded-xl font-bold text-xs btn-primary-gradient"
                 >
                   {isOpen ? 'Close Floating Chat Widget' : 'Open Floating Chat Widget'}
                 </button>
                 <button 
                   onClick={copyEmbed}
-                  className="px-6 py-3.5 rounded-xl font-bold text-xs bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center gap-2"
+                  className="px-6 py-3.5 rounded-xl font-bold text-xs bg-[#101D39] hover:bg-[#142342] text-[#F3F6FF] border border-[#1C2C4B] transition-all flex items-center gap-2"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  {copied ? <Check className="w-4 h-4 text-[#10D6A0]" /> : <Copy className="w-4 h-4" />}
                   {copied ? 'Script Tag Copied!' : 'Copy Script Tag'}
                 </button>
               </div>
             </div>
           </div>
         ) : (
-          <div className="w-full max-w-3xl glass-card border border-slate-800/80 rounded-3xl p-8 shadow-2xl flex flex-col gap-6">
+          <div className="w-full max-w-3xl bg-[#0D1730] border border-[#1C2C4B] rounded-3xl p-8 shadow-2xl flex flex-col gap-6">
             <div>
-              <h2 className="font-display text-xl font-bold text-white mb-2 flex items-center gap-2">
+              <h2 className="font-display text-xl font-bold text-[#F3F6FF] mb-2 flex items-center gap-2">
                 <Code className="w-5 h-5 text-indigo-400" />
                 Embed Chatbot on Any Website
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#71829F]">
                 Copy and paste this script tag right before <code className="text-indigo-300 font-mono">&lt;/body&gt;</code> on any HTML web page.
               </p>
             </div>
 
-            <div className="relative bg-[#0B0F19] border border-slate-800 rounded-2xl overflow-hidden">
-              <div className="px-4 py-2.5 bg-slate-900 border-b border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono">
+            <div className="relative bg-[#080E1B] border border-[#1C2C4B] rounded-2xl overflow-hidden">
+              <div className="px-4 py-2.5 bg-[#091121] border-b border-[#1C2C4B] flex justify-between items-center text-xs text-[#71829F] font-mono">
                 <span>HTML Embed Snippet</span>
                 <button
                   onClick={copyEmbed}
                   className="flex items-center gap-1 hover:text-white text-indigo-400 font-sans font-semibold transition-colors"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-[#10D6A0]" /> : <Copy className="w-3.5 h-3.5" />}
                   {copied ? 'Copied' : 'Copy'}
                 </button>
               </div>
@@ -232,7 +232,7 @@ export const DedicatedPreview: React.FC = () => {
         }`}
       >
         {isOpen ? (
-          <div className="w-full h-[520px] max-h-[80vh] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative border border-slate-800 bg-[#0F172A] animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="w-full h-[540px] max-h-[80vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative border border-[#1C2C4B] bg-[#080E1B]">
             <button 
               onClick={() => setIsOpen(false)}
               className="absolute top-3.5 right-3.5 z-30 text-white/80 hover:text-white p-1.5 hover:bg-white/10 rounded-xl transition-colors"
@@ -256,12 +256,12 @@ export const DedicatedPreview: React.FC = () => {
           <div className="flex flex-col items-end gap-3">
             {showWelcomeTooltip && (
               <div 
-                className="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold border border-slate-700/80 relative animate-bounce"
+                className="bg-[#091121] text-[#F3F6FF] px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold border border-[#1C2C4B] relative animate-bounce"
                 style={{ animationDuration: '3s' }}
               >
                 {welcomeMessage}
                 <div 
-                  className={`absolute -bottom-1.5 w-3 h-3 bg-slate-900 border-r border-b border-slate-700/80 transform rotate-45 ${
+                  className={`absolute -bottom-1.5 w-3 h-3 bg-[#091121] border-r border-b border-[#1C2C4B] transform rotate-45 ${
                     position === 'left' ? 'left-5' : 'right-5'
                   }`}
                 />

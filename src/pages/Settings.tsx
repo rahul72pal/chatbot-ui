@@ -4,7 +4,8 @@ import { useToast } from '../hooks/useToast';
 
 export const Settings: React.FC = () => {
   const toast = useToast();
-  const [email, setEmail] = useState('alex.carter@company.com');
+  const [email, setEmail] = useState('rahul.pal@yourchatbot.com');
+  const [name, setName] = useState('Rahul Pal');
   const [whitelistDomain, setWhitelistDomain] = useState('yoursaas.com');
   const [domains, setDomains] = useState(['yoursaas.com', 'staging.yoursaas.com']);
   const [isSaved, setIsSaved] = useState(false);
@@ -12,9 +13,9 @@ export const Settings: React.FC = () => {
   const handleAddDomain = (e: React.FormEvent) => {
     e.preventDefault();
     if (!whitelistDomain.trim()) return;
-    if (!domains.includes(whitelistDomain)) {
-      setDomains(prev => [...prev, whitelistDomain]);
-      toast.success(`Domain ${whitelistDomain} added to CORS whitelist.`);
+    if (!domains.includes(whitelistDomain.trim())) {
+      setDomains(prev => [...prev, whitelistDomain.trim()]);
+      toast.success(`Domain ${whitelistDomain.trim()} added to CORS whitelist.`);
     }
     setWhitelistDomain('');
   };
@@ -31,31 +32,35 @@ export const Settings: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12 font-sans">
       {/* Header */}
-      <header className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
-            Security & Controls
-          </span>
+      <header className="bg-[#0D1730] border border-[#1C2C4B] p-6 sm:p-7 rounded-2xl relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-indigo-600/15 via-purple-600/5 to-transparent blur-3xl pointer-events-none" />
+        
+        <div className="space-y-1.5 relative z-10">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-[#142342] border border-[#243653] text-[#C7D2FE] text-[11px] font-semibold">
+              Security & Controls
+            </span>
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#F3F6FF] tracking-tight">
+            Workspace Settings
+          </h1>
+          <p className="text-[#A3B3CF] text-xs sm:text-sm max-w-xl">
+            Configure domain CORS whitelists, account profile details, and workspace security protocols.
+          </p>
         </div>
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">
-          Workspace Settings (WIP)
-        </h1>
-        <p className="text-slate-400 text-xs md:text-sm mt-1">
-          Configure domain CORS whitelists, account security, and team profile controls.
-        </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
           {/* Whitelist Domains */}
-          <section className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 space-y-6">
-            <h2 className="font-display font-bold text-base text-white flex items-center gap-2.5 border-b border-slate-800 pb-4">
-              <Globe className="w-5 h-5 text-indigo-400" /> Whitelisted Domains (CORS Security)
+          <section className="bg-[#0D1730] border border-[#1C2C4B] p-6 sm:p-7 rounded-2xl shadow-xl space-y-5">
+            <h2 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2.5 border-b border-[#1C2C4B] pb-4">
+              <Globe className="w-4 h-4 text-indigo-400" /> Whitelisted Domains (CORS Security)
             </h2>
             
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#71829F] leading-relaxed">
               Whitelisting domains prevents external third parties from embedding your chatbot widget script on unverified websites.
             </p>
 
@@ -65,11 +70,11 @@ export const Settings: React.FC = () => {
                 value={whitelistDomain}
                 onChange={(e) => setWhitelistDomain(e.target.value)}
                 placeholder="e.g. app.yoursaas.com"
-                className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="flex-1 bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-2.5 text-xs text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
               />
               <button 
                 type="submit"
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-glow-sm"
+                className="btn-primary-gradient px-4 py-2.5 rounded-xl text-xs font-semibold"
               >
                 Add Domain
               </button>
@@ -77,11 +82,11 @@ export const Settings: React.FC = () => {
 
             <div className="space-y-2 mt-2">
               {domains.map((dom) => (
-                <div key={dom} className="flex justify-between items-center p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl text-xs">
-                  <span className="font-bold text-slate-200">{dom}</span>
+                <div key={dom} className="flex justify-between items-center p-3.5 bg-[#101D39] border border-[#1C2C4B] rounded-xl text-xs">
+                  <span className="font-semibold text-[#F3F6FF]">{dom}</span>
                   <button 
                     onClick={() => handleDeleteDomain(dom)}
-                    className="text-slate-400 hover:text-rose-400 text-[10px] font-bold uppercase tracking-wider transition-colors"
+                    className="text-[#71829F] hover:text-[#FB7185] text-[10px] font-bold uppercase tracking-wider transition-colors"
                   >
                     Remove
                   </button>
@@ -91,38 +96,39 @@ export const Settings: React.FC = () => {
           </section>
 
           {/* Account Profile */}
-          <section className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 space-y-6">
-            <h2 className="font-display font-bold text-base text-white flex items-center gap-2.5 border-b border-slate-800 pb-4">
-              <Users className="w-5 h-5 text-indigo-400" /> Profile Settings
+          <section className="bg-[#0D1730] border border-[#1C2C4B] p-6 sm:p-7 rounded-2xl shadow-xl space-y-5">
+            <h2 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2.5 border-b border-[#1C2C4B] pb-4">
+              <Users className="w-4 h-4 text-indigo-400" /> Profile Settings
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">Full Name</label>
+                <label className="text-xs font-bold text-[#A3B3CF]">Full Name</label>
                 <input 
                   type="text" 
-                  defaultValue="Alex Carter"
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-2.5 text-xs text-[#F3F6FF] focus:outline-none focus:border-[#4F46E5]"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">Email Address</label>
+                <label className="text-xs font-bold text-[#A3B3CF]">Email Address</label>
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-2.5 text-xs text-[#F3F6FF] focus:outline-none focus:border-[#4F46E5]"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-800 flex justify-end">
+            <div className="pt-4 border-t border-[#1C2C4B] flex justify-end">
               <button 
                 onClick={handleSaveSettings}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all shadow-glow-sm"
+                className="btn-primary-gradient px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2"
               >
                 {isSaved ? (
-                  <>Saved <Check className="w-4 h-4 text-emerald-300" /></>
+                  <>Saved <Check className="w-4 h-4 text-[#10D6A0]" /></>
                 ) : (
                   <><Save className="w-4 h-4" /> Save Settings</>
                 )}
@@ -131,13 +137,17 @@ export const Settings: React.FC = () => {
           </section>
         </div>
 
-        {/* Security Summary */}
+        {/* Security Standards Summary */}
         <aside className="space-y-6">
-          <div className="glass-card p-6 rounded-3xl border border-slate-800/80 space-y-3 text-xs text-slate-300 leading-relaxed">
-            <h3 className="font-display font-bold text-sm text-white flex items-center gap-2">
-              <Shield className="w-4 h-4 text-emerald-400" /> Security Standards
+          <div className="bg-[#0D1730] border border-[#1C2C4B] p-6 rounded-2xl shadow-xl space-y-3.5 text-xs text-[#A3B3CF] leading-relaxed">
+            <h3 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2">
+              <Shield className="w-4 h-4 text-[#10D6A0]" /> Security Standards
             </h3>
-            <p>Your workspace communication is protected with TLS 1.3 encryption and 24-Hour TTL expiration for chat logs.</p>
+            <p>Your workspace communication is protected with TLS 1.3 encryption and 24-Hour TTL expiration for visitor chat logs.</p>
+            <div className="p-3.5 bg-[#101D39] rounded-xl border border-[#1C2C4B] space-y-1.5">
+              <p className="font-bold text-[#F3F6FF]">CORS Restrictions</p>
+              <p className="text-[11px] text-[#71829F]">Only requests originating from verified whitelisted domain names are granted access to public widget streaming endpoints.</p>
+            </div>
           </div>
         </aside>
       </div>

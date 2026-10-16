@@ -36,7 +36,7 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   } = context;
 
   return (
-    <div className="flex-1 flex flex-col bg-white border border-slate-200 rounded-2xl overflow-hidden h-full shadow-lg">
+    <div className="flex-1 flex flex-col bg-[#080E1B] border border-[#1C2C4B] rounded-2xl overflow-hidden h-full shadow-2xl">
       <ChatHeader
         name={config.name}
         avatar={config.avatar}
@@ -71,30 +71,31 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   );
 };
 
-export const ChatWindow: React.FC<ChatWindowProps> = (props) => {
-  const context = useContext(ChatbotContext);
-
-  // If already inside ChatbotProvider, render Inner window
-  if (context) {
-    return <ChatWindowInner onClose={props.onClose} />;
-  }
-
-  // Otherwise, wrap self in ChatbotProvider for standalone usage
+export const ChatWindow: React.FC<ChatWindowProps> = ({
+  chatbotId,
+  name = 'Support Assistant',
+  welcomeMessage = 'Hi! How can I help you today?',
+  themeColor = '#4F46E5',
+  avatar = 'support',
+  bubbleStyle = 'rounded',
+  interactive = true,
+  onQueryExecuted,
+  showDebugToggle = true,
+  onClose
+}) => {
   return (
     <ChatbotProvider
-      chatbotId={props.chatbotId}
-      name={props.name}
-      welcomeMessage={props.welcomeMessage}
-      themeColor={props.themeColor}
-      avatar={props.avatar}
-      position="right"
-      bubbleStyle={props.bubbleStyle}
-      interactive={props.interactive}
-      showDebugToggle={props.showDebugToggle}
-      onQueryExecuted={props.onQueryExecuted}
-      defaultOpen={true}
+      chatbotId={chatbotId}
+      name={name}
+      welcomeMessage={welcomeMessage}
+      themeColor={themeColor}
+      avatar={avatar}
+      bubbleStyle={bubbleStyle}
+      interactive={interactive}
+      showDebugToggle={showDebugToggle}
+      onQueryExecuted={onQueryExecuted}
     >
-      <ChatWindowInner onClose={props.onClose} />
+      <ChatWindowInner onClose={onClose} />
     </ChatbotProvider>
   );
 };

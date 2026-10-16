@@ -9,7 +9,8 @@ import {
   Calendar, 
   CheckCircle2, 
   MessageCircle,
-  Plus
+  Plus,
+  ChevronDown
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { messageApi, chatbotApi } from '../api';
@@ -34,7 +35,6 @@ export const Conversations: React.FC = () => {
     queryFn: () => chatbotApi.getChatbots() as Promise<any[]>,
   });
 
-  // Create a quick lookup map for chatbot names
   const chatbotMap: Record<string, string> = {};
   chatbots.forEach((bot) => {
     chatbotMap[bot.id] = bot.name;
@@ -73,141 +73,146 @@ export const Conversations: React.FC = () => {
     });
 
   return (
-    <div className="space-y-8 pb-12 font-sans">
-      {/* Header */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 relative overflow-hidden shadow-2xl">
-        <div className="space-y-1 z-10">
+    <div className="space-y-6 pb-12 font-sans">
+      {/* Header Banner */}
+      <header className="bg-[#0D1730] border border-[#1C2C4B] rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-5 relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-purple-600/15 via-indigo-600/5 to-transparent blur-3xl pointer-events-none" />
+
+        <div className="space-y-1.5 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
+            <span className="px-3 py-1 rounded-full bg-[#142342] border border-[#243653] text-[#C7D2FE] text-[11px] font-semibold">
               Session Management
             </span>
           </div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#F3F6FF] tracking-tight">
             Conversation Sessions
           </h1>
-          <p className="text-slate-400 text-xs md:text-sm">
-            Inspect visitor chat sessions, view detailed transcripts, and manage conversation history.
+          <p className="text-[#A3B3CF] text-xs sm:text-sm max-w-xl">
+            Inspect visitor chat sessions, view detailed transcripts, citations, and conversation performance.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 z-10">
+        <div className="flex items-center gap-3 relative z-10">
           <button 
             onClick={() => navigate('/builder')}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-glow-sm"
+            className="btn-primary-gradient px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             <span>New Chatbot</span>
           </button>
         </div>
-
-        <div className="absolute right-0 top-0 w-80 h-80 bg-indigo-600/10 blur-3xl pointer-events-none -z-0" />
       </header>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="glass-card glass-card-hover p-6 rounded-2xl flex items-center justify-between">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#0D1730] border border-[#1C2C4B] p-5 rounded-2xl flex items-center justify-between shadow-lg">
           <div className="space-y-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Conversations</p>
-            <p className="font-display text-2xl font-bold text-white">{conversations.length}</p>
-            <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> Active sessions
+            <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Total Conversations</p>
+            <p className="font-display text-2xl font-bold text-[#F3F6FF]">{conversations.length}</p>
+            <p className="text-[11px] text-[#10D6A0] font-medium flex items-center gap-1.5 pt-0.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#10D6A0]" /> Active sessions
             </p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-[#142342] border border-[#243653] text-indigo-400 flex items-center justify-center">
             <MessageSquare className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-2xl flex items-center justify-between">
+        <div className="bg-[#0D1730] border border-[#1C2C4B] p-5 rounded-2xl flex items-center justify-between shadow-lg">
           <div className="space-y-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Associated Chatbots</p>
-            <p className="font-display text-2xl font-bold text-white">{chatbots.length}</p>
-            <p className="text-[10px] text-purple-400 font-medium">Deployed assistants</p>
+            <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Associated Chatbots</p>
+            <p className="font-display text-2xl font-bold text-[#F3F6FF]">{chatbots.length}</p>
+            <p className="text-[11px] text-[#A855F7] font-medium pt-0.5">Deployed assistants</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-[#142342] border border-[#243653] text-[#A855F7] flex items-center justify-center">
             <Bot className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-2xl flex items-center justify-between">
+        <div className="bg-[#0D1730] border border-[#1C2C4B] p-5 rounded-2xl flex items-center justify-between shadow-lg">
           <div className="space-y-1">
-            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Storage Policy</p>
-            <p className="font-display text-xl font-bold text-white">24-Hour TTL</p>
-            <p className="text-[10px] text-cyan-400 font-medium">Auto-expiring memory</p>
+            <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Storage Policy</p>
+            <p className="font-display text-xl font-bold text-[#F3F6FF]">24-Hour TTL</p>
+            <p className="text-[11px] text-[#22D3EE] font-medium pt-0.5">Auto-expiring memory</p>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-[#142342] border border-[#243653] text-[#22D3EE] flex items-center justify-center">
             <MessageCircle className="w-6 h-6" />
           </div>
         </div>
       </div>
 
-      {/* Main Conversations Table */}
-      <section className="glass-card rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-slate-800/80 bg-slate-900/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      {/* Main Conversations Table Card */}
+      <section className="bg-[#0D1730] rounded-2xl border border-[#1C2C4B] overflow-hidden shadow-xl">
+        <div className="p-5 sm:p-6 border-b border-[#1C2C4B] bg-[#091121] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="font-display font-bold text-base text-white">
+            <h2 className="font-display font-bold text-base text-[#F3F6FF]">
               Active Sessions ({filteredConversations.length})
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">Click "View Messages" to view full chat history transcript.</p>
+            <p className="text-xs text-[#71829F] mt-0.5">Click "View Messages" to open the full message transcript.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             {/* Filter by Chatbot */}
-            <select
-              value={selectedChatbotFilter}
-              onChange={(e) => setSelectedChatbotFilter(e.target.value)}
-              className="w-full sm:w-auto bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
-            >
-              <option value="">All Chatbots</option>
-              {chatbots.map((bot) => (
-                <option key={bot.id} value={bot.id}>
-                  {bot.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full sm:w-auto">
+              <select
+                value={selectedChatbotFilter}
+                onChange={(e) => setSelectedChatbotFilter(e.target.value)}
+                className="appearance-none w-full sm:w-auto bg-[#101D39] border border-[#1C2C4B] rounded-xl pl-3.5 pr-8 py-2 text-xs font-semibold text-[#A3B3CF] focus:outline-none focus:border-[#4F46E5] cursor-pointer"
+              >
+                <option value="">All Chatbots</option>
+                {chatbots.map((bot) => (
+                  <option key={bot.id} value={bot.id}>
+                    {bot.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-[#71829F] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
 
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[#71829F] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search conversations..."
-                className="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl pl-9 pr-4 py-2 text-xs text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
               />
             </div>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[720px]">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-[10px] font-bold uppercase tracking-wider">
-                <th className="py-4 px-6 font-bold">Conversation Session</th>
-                <th className="py-4 px-6 font-bold">Chatbot</th>
-                <th className="py-4 px-6 font-bold">Summary / Info</th>
-                <th className="py-4 px-6 font-bold">Status</th>
-                <th className="py-4 px-6 font-bold">Last Updated</th>
-                <th className="py-4 px-6 text-right font-bold">Actions</th>
+              <tr className="border-b border-[#1C2C4B] bg-[#091121]/60 text-[#71829F] text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
+                <th className="py-3.5 px-5 font-bold min-w-[200px]">Conversation Session</th>
+                <th className="py-3.5 px-5 font-bold min-w-[140px]">Chatbot</th>
+                <th className="py-3.5 px-5 font-bold min-w-[150px]">Summary / Info</th>
+                <th className="py-3.5 px-5 font-bold min-w-[100px]">Status</th>
+                <th className="py-3.5 px-5 font-bold min-w-[110px]">Last Updated</th>
+                <th className="py-3.5 px-5 text-right font-bold min-w-[110px]">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80 text-xs">
+            <tbody className="divide-y divide-[#1C2C4B] text-xs">
               {isConvsLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={6} className="py-16 text-center text-[#A3B3CF]">
                     <div className="flex items-center justify-center gap-3">
-                      <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-5 h-5 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin"></div>
                       <span>Loading active conversation sessions...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredConversations.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400 space-y-2">
-                    <MessageSquare className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <p className="font-bold text-white">No conversation sessions found</p>
-                    <p className="text-xs text-slate-400">Visitor messages on your embedded widgets will appear here.</p>
+                  <td colSpan={6} className="py-16 text-center text-[#71829F] space-y-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[#101D39] border border-[#243653] flex items-center justify-center text-[#71829F] mx-auto">
+                      <MessageSquare className="w-6 h-6 text-indigo-400" />
+                    </div>
+                    <p className="font-bold text-[#F3F6FF] text-sm">No conversation sessions found</p>
+                    <p className="text-xs text-[#71829F]">Visitor messages on your embedded widgets will appear here.</p>
                   </td>
                 </tr>
               ) : (
@@ -216,18 +221,18 @@ export const Conversations: React.FC = () => {
                   const botName = chatbotMap[conv.chatbot_id] || 'Support Assistant';
 
                   return (
-                    <tr key={convId} className="hover:bg-slate-800/40 transition-colors group">
+                    <tr key={convId} className="hover:bg-[#101D39]/50 transition-colors group">
                       {/* Title & ID */}
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center flex-shrink-0 font-bold">
+                          <div className="w-8 h-8 rounded-xl bg-[#142342] text-indigo-400 border border-[#243653] flex items-center justify-center flex-shrink-0 font-bold">
                             <MessageSquare className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="font-bold text-white text-sm max-w-xs truncate">
+                            <p className="font-bold text-[#F3F6FF] text-xs max-w-xs truncate">
                               {conv.title || `Chat Session #${convId.slice(0, 8)}`}
                             </p>
-                            <p className="text-[10px] font-mono text-slate-400 mt-0.5 truncate max-w-xs">
+                            <p className="text-[10px] font-mono text-[#71829F] mt-0.5 truncate max-w-xs">
                               ID: {convId}
                             </p>
                           </div>
@@ -235,43 +240,43 @@ export const Conversations: React.FC = () => {
                       </td>
 
                       {/* Chatbot Name */}
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-5">
                         <div className="flex items-center gap-2">
-                          <Bot className="w-3.5 h-3.5 text-purple-400" />
-                          <span className="font-bold text-slate-200">{botName}</span>
+                          <Bot className="w-3.5 h-3.5 text-[#A855F7]" />
+                          <span className="font-bold text-[#F3F6FF]">{botName}</span>
                         </div>
                       </td>
 
                       {/* Summary */}
-                      <td className="py-4 px-6 max-w-xs">
-                        <p className="text-slate-300 truncate">
+                      <td className="py-4 px-5 max-w-xs">
+                        <p className="text-[#A3B3CF] truncate text-xs">
                           {conv.summary ? conv.summary : 'Active visitor chat session'}
                         </p>
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-6">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <td className="py-4 px-5">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#10D6A0]/10 text-[#10D6A0] border border-[#10D6A0]/30">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#10D6A0] animate-pulse" />
                           Active
                         </span>
                       </td>
 
                       {/* Last Updated */}
-                      <td className="py-4 px-6 text-slate-400 whitespace-nowrap">
+                      <td className="py-4 px-5 text-[#71829F] whitespace-nowrap">
                         <div className="flex items-center gap-1.5 text-xs">
-                          <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                          <Calendar className="w-3.5 h-3.5 text-[#71829F]" />
                           <span>{conv.updated_at ? new Date(conv.updated_at).toLocaleString() : 'Recently'}</span>
                         </div>
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-6 text-right">
+                      <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => navigate(`/conversations/${convId}`)}
-                            className="px-3.5 py-1.5 text-[11px] font-bold bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600/30 rounded-xl transition-all flex items-center gap-1.5 shadow-glow-sm"
-                            title="Show Message Transcript UI"
+                            className="px-3 py-1.5 text-[11px] font-semibold bg-[#142342] text-[#C7D2FE] border border-[#243653] hover:bg-[#1C2C4B] hover:text-white rounded-xl transition-all flex items-center gap-1.5"
+                            title="Show Message Transcript"
                           >
                             <Eye className="w-3.5 h-3.5" />
                             View Messages
@@ -280,10 +285,10 @@ export const Conversations: React.FC = () => {
                           <button
                             onClick={() => handleDelete(convId, conv.title)}
                             disabled={deleteMutation.isPending}
-                            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors disabled:opacity-40"
+                            className="p-1.5 text-[#71829F] hover:text-[#FB7185] hover:bg-[#FB7185]/10 rounded-xl transition-colors disabled:opacity-40"
                             title="Delete Conversation"
                           >
-                            <Trash2 className="w-4 h-4 text-rose-400" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

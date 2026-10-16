@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MessageSquare } from 'lucide-react';
+import { X, MessageSquare, Sparkles } from 'lucide-react';
 import ChatWindow from './ChatWindow';
 
 interface ChatPreviewProps {
@@ -29,62 +29,53 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
   };
 
   return (
-    <div className="w-full h-full bg-white rounded-xl border border-border-subtle shadow-sm flex flex-col overflow-hidden relative min-h-[500px]">
-      {/* Browser chrome header */}
-      <div className="h-12 bg-surface-container-low border-b border-border-subtle flex items-center px-4 gap-4 flex-shrink-0">
+    <div className="w-full h-full bg-[#070B14] rounded-2xl border border-[#1C2C4B] shadow-2xl flex flex-col overflow-hidden relative min-h-[500px]">
+      {/* Browser Chrome Header */}
+      <div className="h-12 bg-[#091121] border-b border-[#1C2C4B] flex items-center px-4 gap-4 flex-shrink-0">
         <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-400"></div>
-          <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-          <div className="w-3 h-3 rounded-full bg-green-400"></div>
+          <div className="w-3 h-3 rounded-full bg-[#FB7185]/80"></div>
+          <div className="w-3 h-3 rounded-full bg-[#FBBF24]/80"></div>
+          <div className="w-3 h-3 rounded-full bg-[#10D6A0]/80"></div>
         </div>
-        <div className="flex-1 max-w-xs md:max-w-md mx-auto bg-white border border-border-subtle rounded-md h-7 flex items-center justify-center">
-          <span className="font-mono text-[11px] text-text-muted">yoursaas.com</span>
+        <div className="flex-1 max-w-xs md:max-w-md mx-auto bg-[#0D1730] border border-[#1C2C4B] rounded-lg h-7 flex items-center justify-center">
+          <span className="font-mono text-[11px] text-[#71829F]">yoursaas.com</span>
         </div>
       </div>
 
-      {/* Fake website body content */}
-      <div className="flex-1 bg-surface-bright p-6 md:p-12 relative overflow-hidden flex flex-col items-center justify-start pt-16 text-center select-none">
-        <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#64748B 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+      {/* Mock Website Body Content */}
+      <div className="flex-1 bg-[#080E1B] p-6 md:p-12 relative overflow-hidden flex flex-col items-center justify-start pt-16 text-center select-none">
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#4F46E5 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
         
-        <div className="inline-block px-3 py-1 bg-surface-container border border-border-subtle rounded-full text-[10px] font-bold text-text-muted uppercase tracking-wider mb-4">
-          Introducing Analytics 2.0
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#142342] border border-[#243653] rounded-full text-[10px] font-bold text-[#C7D2FE] uppercase tracking-wider mb-4">
+          <Sparkles className="w-3 h-3 text-[#22D3EE]" /> Next-Gen AI Assistant
         </div>
         
-        <h2 className="text-[28px] md:text-[40px] font-bold text-on-surface leading-tight tracking-tight mb-3">
+        <h2 className="text-[26px] md:text-[36px] font-bold text-[#F3F6FF] leading-tight tracking-tight mb-3">
           Understand your data <br />at the speed of thought.
         </h2>
         
-        <p className="text-[14px] md:text-[16px] text-text-muted max-w-xl mx-auto mb-6">
-          The ultimate analytics platform for modern engineering teams. No SQL required. Just ask questions in plain English.
+        <p className="text-[13px] md:text-[15px] text-[#A3B3CF] max-w-lg mx-auto mb-6">
+          The ultimate intelligent chatbot platform for modern products. Connect your vector knowledge base and start chatting.
         </p>
 
         <div className="flex gap-3 justify-center mb-8">
-          <div className="px-5 py-2.5 bg-on-surface text-white rounded-lg text-[13px] font-medium">Get Started</div>
-          <div className="px-5 py-2.5 bg-white border border-border-subtle text-on-surface rounded-lg text-[13px] font-medium">Documentation</div>
-        </div>
-
-        {/* Decorative Grid items */}
-        <div className="w-full max-w-2xl bg-white border border-border-subtle rounded-t-xl shadow-xs p-4 flex flex-col gap-3">
-          <div className="flex gap-2 border-b border-border-subtle pb-3">
-            <div className="h-3 w-16 bg-surface-container rounded"></div>
-            <div className="h-3 w-24 bg-surface-container rounded"></div>
+          <div className="px-5 py-2.5 btn-primary-gradient rounded-xl text-xs font-semibold cursor-pointer">
+            Get Started
           </div>
-          <div className="flex gap-3 h-24">
-            <div className="w-1/3 bg-surface-container rounded-md"></div>
-            <div className="w-2/3 bg-surface-container rounded-md"></div>
+          <div className="px-5 py-2.5 bg-[#101D39] border border-[#1C2C4B] text-[#F3F6FF] rounded-xl text-xs font-medium cursor-pointer">
+            Documentation
           </div>
         </div>
       </div>
 
-      {/* Floating Chat widget simulator */}
+      {/* Floating Chat Widget Simulator */}
       <div 
         className={`absolute bottom-6 flex flex-col items-end gap-3 z-10 w-[90%] sm:w-80 md:w-96 transition-all duration-300 ${
           position === 'left' ? 'left-6' : 'right-6'
         }`}
       >
         {isOpen ? (
-          <div className="w-full h-[400px] flex flex-col rounded-xl overflow-hidden shadow-2xl relative border border-border-subtle">
-            {/* Custom minimize header action */}
+          <div className="w-full h-[400px] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative border border-[#1C2C4B] bg-[#080E1B]">
             <div className="absolute top-4 right-3 z-20 flex items-center gap-1.5 text-white/80">
               <button 
                 onClick={() => setIsOpen(false)}
@@ -106,7 +97,6 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
             />
           </div>
         ) : (
-          /* Closed Widget Launcher Bubble */
           <div 
             onClick={() => setIsOpen(true)}
             className={getLauncherClasses()}
@@ -120,4 +110,5 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
     </div>
   );
 };
+
 export default ChatPreview;
