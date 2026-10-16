@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Menu, 
-  Search, 
+  // Menu, 
+  // Search, 
   Sun, 
   Moon, 
   Bell, 
@@ -18,10 +18,10 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
-  onMenuToggle, 
+  // onMenuToggle, 
 }) => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  // const [searchQuery, setSearchQuery] = useState('');
   const [isDark, setIsDark] = useState(true);
 
   return (
