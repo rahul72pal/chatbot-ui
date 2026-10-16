@@ -48,9 +48,8 @@ export const ConversationDetail: React.FC = () => {
   });
 
   const botName = chatbot?.name || 'Support Assistant';
-  const themeColor = chatbot?.theme_color || '#6366F1';
+  const themeColor = chatbot?.theme_color || '#4F46E5';
 
-  // Auto-scroll to bottom of chat history when messages load
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -80,10 +79,10 @@ export const ConversationDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#090D16] flex items-center justify-center text-white font-sans">
+      <div className="min-h-[60vh] flex items-center justify-center text-[#F3F6FF] font-sans">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs text-slate-400 font-medium">Loading conversation messages...</p>
+          <div className="w-8 h-8 border-3 border-[#4F46E5] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs text-[#71829F] font-medium">Loading conversation messages...</p>
         </div>
       </div>
     );
@@ -92,32 +91,32 @@ export const ConversationDetail: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 font-sans max-w-5xl mx-auto">
       {/* Header Bar */}
-      <header className="glass-card p-6 rounded-3xl border border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xl">
+      <header className="bg-[#0D1730] border border-[#1C2C4B] p-5 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => navigate('/conversations')}
-            className="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors bg-slate-800/80 hover:bg-slate-700/80 px-3.5 py-2 rounded-xl border border-slate-700 font-medium"
+            className="flex items-center gap-2 text-xs text-[#A3B3CF] hover:text-[#F3F6FF] transition-colors bg-[#101D39] hover:bg-[#142342] px-3.5 py-2 rounded-xl border border-[#1C2C4B] font-medium"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Conversations
+            <ArrowLeft className="w-4 h-4 text-indigo-400" />
+            Back to Sessions
           </button>
 
-          <div className="h-6 w-px bg-slate-800 hidden sm:block" />
+          <div className="h-6 w-px bg-[#1C2C4B] hidden sm:block" />
 
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-base font-bold text-white">
+              <h1 className="font-display text-base font-bold text-[#F3F6FF]">
                 {conversation.title || `Chat Session #${conversationId.slice(0, 8)}`}
               </h1>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#10D6A0]/10 text-[#10D6A0] border border-[#10D6A0]/30">
                 <CheckCircle2 className="w-3 h-3" />
                 Active Session
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
-              <span>Assigned Chatbot: <strong className="text-slate-200">{botName}</strong></span>
+            <p className="text-[11px] text-[#71829F] flex items-center gap-2 mt-0.5">
+              <span>Assigned Chatbot: <strong className="text-[#A3B3CF]">{botName}</strong></span>
               <span>•</span>
-              <span className="font-mono text-slate-500">ID: {conversationId}</span>
+              <span className="font-mono text-[#71829F]">ID: {conversationId}</span>
             </p>
           </div>
         </div>
@@ -126,19 +125,19 @@ export const ConversationDetail: React.FC = () => {
           <button
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors border border-slate-800 flex items-center gap-1.5 text-xs font-semibold"
+            className="p-2 text-[#71829F] hover:text-[#FB7185] hover:bg-[#FB7185]/10 rounded-xl transition-colors border border-[#1C2C4B] flex items-center gap-1.5 text-xs font-semibold"
             title="Delete Conversation"
           >
-            <Trash2 className="w-4 h-4 text-rose-400" />
+            <Trash2 className="w-4 h-4 text-[#FB7185]" />
             <span className="hidden sm:inline">Delete Session</span>
           </button>
         </div>
       </header>
 
       {/* Transcript Chat Window */}
-      <section className="glass-card rounded-3xl border border-slate-800/80 overflow-hidden shadow-2xl flex flex-col h-[620px] max-h-[75vh]">
+      <section className="bg-[#0D1730] rounded-2xl border border-[#1C2C4B] overflow-hidden shadow-2xl flex flex-col h-[640px] max-h-[75vh]">
         {/* Chat Window Header */}
-        <div className="px-6 py-4 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between text-xs">
+        <div className="px-6 py-4 bg-[#091121] border-b border-[#1C2C4B] flex items-center justify-between text-xs">
           <div className="flex items-center gap-3">
             <div 
               className="w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold shadow-sm"
@@ -147,8 +146,8 @@ export const ConversationDetail: React.FC = () => {
               <Bot className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-bold text-white block">{botName} Transcript</span>
-              <span className="text-[10px] text-slate-400 flex items-center gap-1">
+              <span className="font-bold text-[#F3F6FF] block">{botName} Transcript</span>
+              <span className="text-[10px] text-[#71829F] flex items-center gap-1">
                 <Clock className="w-3 h-3 text-indigo-400" />
                 {messages.length} messages in history
               </span>
@@ -156,23 +155,23 @@ export const ConversationDetail: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-slate-400 bg-slate-800/80 px-3 py-1 rounded-lg border border-slate-700">
+            <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-[#A3B3CF] bg-[#101D39] px-3 py-1 rounded-lg border border-[#1C2C4B]">
               <Eye className="w-3.5 h-3.5 text-indigo-400" /> Read-Only Mode
             </span>
-            <div className="flex items-center gap-2 text-[11px] font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/20">
-              <Zap className="w-3.5 h-3.5 text-cyan-400" />
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-indigo-300 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/30">
+              <Zap className="w-3.5 h-3.5 text-[#22D3EE]" />
               <span>Qdrant RAG Enabled</span>
             </div>
           </div>
         </div>
 
         {/* Messages Stream Container */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#080E1B]">
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center text-slate-400 space-y-2">
-              <Bot className="w-10 h-10 text-slate-600 mb-1 animate-pulse" />
-              <p className="font-bold text-white text-sm">No messages recorded in this conversation yet</p>
-              <p className="text-xs text-slate-400 max-w-sm">
+            <div className="h-full flex flex-col items-center justify-center text-center text-[#71829F] space-y-2">
+              <Bot className="w-10 h-10 text-[#71829F] mb-1 animate-pulse" />
+              <p className="font-bold text-[#F3F6FF] text-sm">No messages recorded in this conversation yet</p>
+              <p className="text-xs text-[#71829F] max-w-sm">
                 Visitor chat prompts will automatically stream and record here in real-time.
               </p>
             </div>
@@ -183,27 +182,27 @@ export const ConversationDetail: React.FC = () => {
               return (
                 <div 
                   key={index} 
-                  className={`flex gap-3 max-w-[88%] ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
+                  className={`flex gap-3 max-w-[85%] ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}
                 >
                   {/* Avatar Icon */}
                   <div 
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 shadow-md ${
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center text-white flex-shrink-0 shadow-md ${
                       isUser 
-                        ? 'bg-gradient-to-tr from-indigo-600 to-purple-600' 
-                        : 'bg-slate-800 border border-slate-700 text-indigo-400'
+                        ? 'bg-gradient-to-tr from-[#4F46E5] to-[#7C3AED]' 
+                        : 'bg-[#101D39] border border-[#243653] text-indigo-400'
                     }`}
                   >
                     {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                   </div>
 
-                  {/* Message Bubble */}
+                  {/* Message Bubble Container */}
                   <div className="space-y-1.5 flex-1">
                     <div className={`flex items-center gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
-                      <span className="text-[11px] font-bold text-slate-300">
+                      <span className="text-[11px] font-bold text-[#A3B3CF]">
                         {isUser ? 'Visitor Prompt' : botName}
                       </span>
                       {msg.created_at && (
-                        <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                        <span className="text-[10px] text-[#71829F] flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
@@ -217,19 +216,19 @@ export const ConversationDetail: React.FC = () => {
 
                     {/* Reasoning Accordion (If available) */}
                     {msg.reasoning_details && (
-                      <div className="bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 space-y-1.5">
+                      <div className="bg-[#101D39] border border-[#1C2C4B] rounded-xl p-3 text-xs text-[#A3B3CF] space-y-1.5">
                         <button
                           onClick={() => toggleReasoning(index)}
                           className="flex items-center justify-between w-full text-indigo-300 font-bold text-[11px] hover:text-indigo-200 transition-colors"
                         >
                           <span className="flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                            <Sparkles className="w-3.5 h-3.5 text-[#22D3EE]" />
                             DeepSeek Reasoning Process
                           </span>
                           {expandedReasoning[index] ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                         </button>
                         {expandedReasoning[index] && (
-                          <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-400 font-mono leading-relaxed whitespace-pre-wrap">
+                          <div className="pt-2 border-t border-[#1C2C4B] text-[11px] text-[#71829F] font-mono leading-relaxed whitespace-pre-wrap">
                             {msg.reasoning_details}
                           </div>
                         )}
@@ -240,8 +239,8 @@ export const ConversationDetail: React.FC = () => {
                     <div 
                       className={`p-4 text-xs leading-relaxed rounded-2xl ${
                         isUser
-                          ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-tr-xs shadow-glow-sm'
-                          : 'bg-slate-900/90 text-slate-200 rounded-tl-xs border border-slate-800'
+                          ? 'bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white rounded-tr-xs shadow-[0_4px_14px_rgba(79,70,229,0.25)]'
+                          : 'bg-[#101D39] text-[#F3F6FF] rounded-tl-xs border border-[#1C2C4B]'
                       }`}
                     >
                       <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -256,12 +255,12 @@ export const ConversationDetail: React.FC = () => {
         </div>
 
         {/* Read-Only Status Bar Footer */}
-        <div className="p-4 bg-slate-900/90 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <div className="p-4 bg-[#091121] border-t border-[#1C2C4B] flex items-center justify-between text-xs text-[#71829F]">
           <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-amber-400" />
-            <span className="font-medium text-slate-300">Read-Only Session Archive</span>
+            <Lock className="w-4 h-4 text-[#FBBF24]" />
+            <span className="font-medium text-[#A3B3CF]">Read-Only Session Archive</span>
           </div>
-          <span className="text-[11px] text-slate-500">
+          <span className="text-[11px] text-[#71829F]">
             Messages are created by website visitors via public chatbot widgets.
           </span>
         </div>

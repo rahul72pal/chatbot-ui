@@ -14,7 +14,7 @@ export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
   const toggleChat = context?.toggleChat;
 
   const {
-    themeColor = '#3525cd',
+    themeColor = '#4F46E5',
     avatar = 'support',
     position = 'right',
     bubbleStyle = 'rounded',
@@ -26,7 +26,7 @@ export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
 
   const getLauncherRadius = () => {
     if (bubbleStyle === 'pill') return 'rounded-full';
-    if (bubbleStyle === 'square') return 'rounded-md';
+    if (bubbleStyle === 'square') return 'rounded-xl';
     return 'rounded-2xl';
   };
 
@@ -51,14 +51,14 @@ export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
       {/* Floating Welcome Tooltip */}
       {showWelcomeTooltip && (
         <div
-          className={`bg-white text-slate-800 px-4 py-2.5 rounded-2xl shadow-xl text-xs font-semibold border border-slate-200 relative pointer-events-none transition-all duration-200 animate-bounce ${
+          className={`bg-[#091121] text-[#F3F6FF] px-4 py-2.5 rounded-2xl shadow-xl text-xs font-semibold border border-[#1C2C4B] relative pointer-events-none transition-all duration-200 animate-bounce ${
             position === 'left' ? 'left-0' : 'right-0'
           }`}
           style={{ animationDuration: '3s' }}
         >
           {welcomeMessage}
           <div
-            className={`absolute -bottom-1.5 w-3 h-3 bg-white border-r border-b border-slate-200 transform rotate-45 ${
+            className={`absolute -bottom-1.5 w-3 h-3 bg-[#091121] border-r border-b border-[#1C2C4B] transform rotate-45 ${
               position === 'left' ? 'left-5' : 'right-5'
             }`}
           />

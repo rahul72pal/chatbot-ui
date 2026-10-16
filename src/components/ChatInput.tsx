@@ -12,7 +12,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   interactive = true,
   isStreaming = false,
-  themeColor = '#3525cd'
+  themeColor = '#4F46E5'
 }) => {
   const [inputText, setInputText] = useState('');
 
@@ -30,29 +30,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="p-3 border-t border-slate-100 bg-white flex-shrink-0">
-      <div className="relative flex items-end shadow-xs">
+    <div className="p-3 border-t border-[#1C2C4B] bg-[#091121] flex-shrink-0">
+      <div className="relative flex items-end">
         <textarea
           value={inputText}
           onChange={e => setInputText(e.target.value)}
           onKeyDown={handleKeyPress}
           disabled={!interactive}
-          className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-4 pr-12 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none min-h-[48px] max-h-[160px]"
+          className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl py-2.5 pl-3.5 pr-12 text-xs text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5] transition-all resize-none min-h-[44px] max-h-[140px]"
           placeholder={interactive ? 'Type a message to test...' : 'Chat disabled in static preview'}
         />
         <button
           onClick={handleSend}
           disabled={!interactive || !inputText.trim() || isStreaming}
-          className="absolute right-2.5 bottom-2.5 p-2 text-white rounded-lg transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+          className="absolute right-2 bottom-2 p-2 text-white rounded-lg transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
           style={{ backgroundColor: themeColor }}
           title="Send message"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-3.5 h-3.5" />
         </button>
       </div>
-      <div className="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-400">
+      <div className="flex items-center justify-between mt-1.5 px-1 text-[10px] text-[#71829F]">
         <span>Shift + Enter for new line</span>
-        <span>Powered by yourchatbot</span>
+        <span className="font-medium text-indigo-400">Powered by yourchatbot</span>
       </div>
     </div>
   );

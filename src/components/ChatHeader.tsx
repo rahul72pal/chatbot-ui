@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, RefreshCw, HelpCircle, MessageSquare, Headphones, X } from 'lucide-react';
+import { Bot, HelpCircle, MessageSquare, Headphones, X, RotateCcw } from 'lucide-react';
 
 interface ChatHeaderProps {
   name?: string;
@@ -16,8 +16,7 @@ interface ChatHeaderProps {
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   name = 'Support Assistant',
   avatar = 'support',
-  themeColor = '#3525cd',
-  interactive = true,
+  themeColor = '#4F46E5',
   showDebugToggle = true,
   debugMode = true,
   onSetDebugMode,
@@ -25,60 +24,64 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onClose
 }) => {
   const getAvatarIcon = () => {
-    if (avatar === 'faq' || avatar === 'quiz') return <HelpCircle className="w-5 h-5" />;
-    if (avatar === 'sales' || avatar === 'shopping_bag') return <MessageSquare className="w-5 h-5" />;
-    if (avatar === 'headphones' || avatar === 'support') return <Headphones className="w-5 h-5" />;
-    return <Bot className="w-5 h-5" />;
+    if (avatar === 'faq' || avatar === 'quiz') return <HelpCircle className="w-4 h-4" />;
+    if (avatar === 'sales' || avatar === 'shopping_bag') return <MessageSquare className="w-4 h-4" />;
+    if (avatar === 'headphones' || avatar === 'support') return <Headphones className="w-4 h-4" />;
+    return <Bot className="w-4 h-4" />;
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white flex-shrink-0">
+    <div className="flex items-center justify-between p-4 border-b border-[#1C2C4B] bg-[#091121] flex-shrink-0">
       <div className="flex items-center gap-3">
         <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-white shadow-xs"
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-sm flex-shrink-0"
           style={{ backgroundColor: themeColor }}
         >
           {getAvatarIcon()}
         </div>
         <div>
-          <span className="font-bold text-slate-900 block leading-tight text-[15px]">{name}</span>
-          <span className="text-[11px] text-slate-500 mt-0.5 block">Usually replies in minutes</span>
+          <span className="font-bold text-[#F3F6FF] block leading-tight text-xs">{name}</span>
+          <span className="text-[10px] text-[#71829F] mt-0.5 block flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#10D6A0] animate-pulse" />
+            AI Assistant Online
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
+        {onClearChat && (
+          <button
+            onClick={onClearChat}
+            className="p-1.5 text-[#71829F] hover:text-[#F3F6FF] hover:bg-[#101D39] rounded-lg transition-colors"
+            title="Reset conversation"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+        )}
+
         {showDebugToggle && onSetDebugMode && (
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Debug</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Debug</span>
             <button
               onClick={() => onSetDebugMode(!debugMode)}
-              className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                debugMode ? 'bg-indigo-500/20' : 'bg-slate-200'
+              className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
+                debugMode ? 'bg-[#4F46E5]' : 'bg-[#142342]'
               }`}
             >
               <span
-                className={`inline-block h-4 w-4 rounded-full transition-transform ${
-                  debugMode ? 'translate-x-4 shadow' : 'translate-x-1'
+                className={`inline-block h-3 w-3 rounded-full bg-white transition-transform ${
+                  debugMode ? 'translate-x-3.5' : 'translate-x-0.5'
                 }`}
-                style={{ backgroundColor: debugMode ? themeColor : '#94a3b8' }}
               />
             </button>
           </div>
         )}
-        {interactive && onClearChat && (
-          <button
-            onClick={onClearChat}
-            className="text-slate-400 hover:text-indigo-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-            title="Clear chat"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        )}
+
         {onClose && (
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
-            title="Close"
+            className="p-1 text-[#71829F] hover:text-[#F3F6FF] hover:bg-[#101D39] rounded-lg transition-colors"
+            title="Close Chat"
           >
             <X className="w-4 h-4" />
           </button>

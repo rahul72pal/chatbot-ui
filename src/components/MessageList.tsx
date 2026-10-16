@@ -18,7 +18,7 @@ interface MessageListProps {
 export const MessageList: React.FC<MessageListProps> = ({
   messages,
   bubbleStyle = 'rounded',
-  themeColor = '#3525cd',
+  themeColor = '#4F46E5',
   debugMode = false,
   isStreaming = false,
   streamStatus,
@@ -33,7 +33,7 @@ export const MessageList: React.FC<MessageListProps> = ({
   }, [messages, streamStatus]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-5 bg-slate-50">
+    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-[#080E1B] custom-scrollbar">
       {messages.map((msg, index) => {
         const isLatestAI = msg.sender === 'assistant' && index === messages.length - 1;
         return (

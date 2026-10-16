@@ -11,16 +11,16 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ status, active
 
   const renderIcon = () => {
     if (activeTool === 'web_search' || status.toLowerCase().includes('web')) {
-      return <Search className="w-3.5 h-3.5 animate-spin text-indigo-600" />;
+      return <Search className="w-3.5 h-3.5 animate-spin text-indigo-400" />;
     }
     if (activeTool === 'document_search' || status.toLowerCase().includes('knowledge')) {
-      return <Database className="w-3.5 h-3.5 animate-spin text-indigo-600" />;
+      return <Database className="w-3.5 h-3.5 animate-spin text-indigo-400" />;
     }
-    return <Sparkles className="w-3.5 h-3.5 animate-spin text-indigo-600" />;
+    return <Sparkles className="w-3.5 h-3.5 animate-spin text-indigo-400" />;
   };
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[12px] font-medium w-fit animate-pulse mb-1">
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#142342] text-[#C7D2FE] border border-[#243653] text-[11px] font-medium w-fit animate-pulse mb-1">
       {renderIcon()}
       <span>{status}</span>
     </div>

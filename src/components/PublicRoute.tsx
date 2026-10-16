@@ -10,7 +10,7 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
 
   if (token) {
     // Redirect authenticated users trying to access login/signup pages back to dashboard
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;

@@ -96,41 +96,45 @@ export const ApiModels: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12 font-sans">
       {/* Header */}
-      <header className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold">
-            Global AI Setup
-          </span>
-          {editingConfigId && (
-            <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" />
-              Active Config ID: {editingConfigId.slice(0, 8)}...
+      <header className="bg-[#0D1730] border border-[#1C2C4B] p-6 sm:p-7 rounded-2xl relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-indigo-600/15 via-purple-600/5 to-transparent blur-3xl pointer-events-none" />
+        
+        <div className="space-y-1.5 relative z-10">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-[#142342] border border-[#243653] text-[#C7D2FE] text-[11px] font-semibold">
+              Global AI Setup
             </span>
-          )}
+            {editingConfigId && (
+              <span className="px-3 py-1 rounded-full bg-[#10D6A0]/10 border border-[#10D6A0]/30 text-[#10D6A0] text-[11px] font-semibold flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Active Config ID: {editingConfigId.slice(0, 8)}...
+              </span>
+            )}
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#F3F6FF] tracking-tight">
+            {editingConfigId ? 'Edit LLM Configuration & Models' : 'LLM Configuration & Models'}
+          </h1>
+          <p className="text-[#A3B3CF] text-xs sm:text-sm max-w-xl">
+            Manage workspace AI provider credentials, manual string model names, and generation parameters.
+          </p>
         </div>
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-white tracking-tight">
-          {editingConfigId ? 'Edit LLM Configuration & Models' : 'LLM Configuration & Models'}
-        </h1>
-        <p className="text-slate-400 text-xs md:text-sm mt-1">
-          Manage workspace AI provider credentials, manual string model names, and generation parameters.
-        </p>
       </header>
 
-      <form onSubmit={handleSave} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <form onSubmit={handleSave} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main LLM Config Options */}
-        <div className="md:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6">
           
           {/* LLM Provider & Model Section */}
-          <section className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 space-y-6">
-            <h2 className="font-display font-bold text-base text-white flex items-center gap-2.5 border-b border-slate-800 pb-4">
-              <Cpu className="w-5 h-5 text-indigo-400" />
+          <section className="bg-[#0D1730] border border-[#1C2C4B] p-6 rounded-2xl shadow-xl space-y-6">
+            <h2 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2.5 border-b border-[#1C2C4B] pb-4">
+              <Cpu className="w-4 h-4 text-indigo-400" />
               LLM Provider & String Model
             </h2>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300">LLM Provider</label>
+              <label className="text-xs font-bold text-[#A3B3CF]">LLM Provider</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {['openai', 'anthropic', 'gemini', 'custom'].map((p) => (
                   <button
@@ -139,8 +143,8 @@ export const ApiModels: React.FC = () => {
                     onClick={() => setProvider(p)}
                     className={`py-3 px-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border ${
                       provider === p 
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-glow-sm' 
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                        ? 'bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] border-indigo-400 text-white shadow-[0_4px_14px_rgba(79,70,229,0.3)]' 
+                        : 'bg-[#101D39] border-[#1C2C4B] text-[#71829F] hover:text-[#F3F6FF] hover:border-[#243653]'
                     }`}
                   >
                     {p}
@@ -151,7 +155,7 @@ export const ApiModels: React.FC = () => {
 
             {/* Manual String Input for Model Name */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300">
+              <label className="text-xs font-bold text-[#A3B3CF]">
                 Model Name (Manual Text Entry)
               </label>
               <input 
@@ -159,29 +163,29 @@ export const ApiModels: React.FC = () => {
                 value={modelName}
                 onChange={(e) => setModelName(e.target.value)}
                 placeholder="e.g. gpt-4o, deepseek-chat, claude-3-5-sonnet-20241022"
-                className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-3 text-xs font-mono text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
               />
-              <p className="text-[11px] text-slate-400">Type any string model name supported by your LLM API endpoint.</p>
+              <p className="text-[11px] text-[#71829F]">Type any string model name supported by your LLM API endpoint.</p>
             </div>
 
             {provider === 'custom' && (
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300">Custom API Base URL</label>
+                <label className="text-xs font-bold text-[#A3B3CF]">Custom API Base URL</label>
                 <input 
                   type="text"
                   value={baseUrl}
                   onChange={(e) => setBaseUrl(e.target.value)}
                   placeholder="https://api.your-custom-llm.com/v1"
-                  className="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-3 text-xs font-mono text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
                 />
               </div>
             )}
           </section>
 
           {/* API Token Credentials */}
-          <section className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 space-y-5">
-            <h2 className="font-display font-bold text-base text-white flex items-center gap-2.5 border-b border-slate-800 pb-4">
-              <Key className="w-5 h-5 text-indigo-400" />
+          <section className="bg-[#0D1730] border border-[#1C2C4B] p-6 rounded-2xl shadow-xl space-y-5">
+            <h2 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2.5 border-b border-[#1C2C4B] pb-4">
+              <Key className="w-4 h-4 text-indigo-400" />
               API Secret Key Token
             </h2>
 
@@ -190,39 +194,39 @@ export const ApiModels: React.FC = () => {
                 type={showKey ? 'text' : 'password'}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="w-full font-mono text-xs text-white bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-3 pr-24 focus:outline-none focus:border-indigo-500"
+                className="w-full font-mono text-xs text-[#F3F6FF] bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-3 pr-24 focus:outline-none focus:border-[#4F46E5]"
                 placeholder="Enter API token secret..."
               />
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowKey(!showKey)}
-                  className="p-1.5 text-slate-400 hover:text-white transition-colors"
+                  className="p-1.5 text-[#71829F] hover:text-[#F3F6FF] transition-colors"
                 >
                   {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
                 <button
                   type="button"
                   onClick={copyToClipboard}
-                  className="p-1.5 text-slate-400 hover:text-white transition-colors"
+                  className="p-1.5 text-[#71829F] hover:text-[#F3F6FF] transition-colors"
                 >
-                  {isCopied ? <span className="text-[10px] text-emerald-400 font-sans font-bold">Copied!</span> : <Copy className="w-4 h-4" />}
+                  {isCopied ? <span className="text-[10px] text-[#10D6A0] font-sans font-bold">Copied!</span> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
             </div>
           </section>
 
           {/* Global Hyperparameters: Temperature & Max Tokens */}
-          <section className="glass-card p-6 md:p-8 rounded-3xl border border-slate-800/80 space-y-6">
-            <h2 className="font-display font-bold text-base text-white flex items-center gap-2.5 border-b border-slate-800 pb-4">
-              <Sliders className="w-5 h-5 text-indigo-400" />
+          <section className="bg-[#0D1730] border border-[#1C2C4B] p-6 rounded-2xl shadow-xl space-y-6">
+            <h2 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2.5 border-b border-[#1C2C4B] pb-4">
+              <Sliders className="w-4 h-4 text-indigo-400" />
               Hyperparameters & Temperature
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-end">
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <label className="text-slate-300">Temperature</label>
+                  <label className="text-[#A3B3CF]">Temperature</label>
                   <span className="font-mono text-indigo-400 font-bold bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-0.5 rounded-lg text-xs">
                     {temperature.toFixed(1)}
                   </span>
@@ -235,9 +239,9 @@ export const ApiModels: React.FC = () => {
                     step="0.1"
                     value={temperature}
                     onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                    className="w-full h-2 rounded-lg cursor-pointer accent-indigo-500 focus:outline-none border border-slate-700/60"
+                    className="w-full h-2 rounded-lg cursor-pointer accent-indigo-500 focus:outline-none"
                     style={{
-                      background: `linear-gradient(to right, #6366f1 0%, #a855f7 ${(temperature / 2) * 100}%, #1e293b ${(temperature / 2) * 100}%, #1e293b 100%)`
+                      background: `linear-gradient(to right, #4F46E5 0%, #7C3AED ${(temperature / 2) * 100}%, #101D39 ${(temperature / 2) * 100}%, #101D39 100%)`
                     }}
                   />
                 </div>
@@ -245,7 +249,7 @@ export const ApiModels: React.FC = () => {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <label className="text-slate-300">Max Token Limit</label>
+                  <label className="text-[#A3B3CF]">Max Token Limit</label>
                   <span className="font-mono text-purple-400 font-bold bg-purple-500/10 border border-purple-500/30 px-2.5 py-0.5 rounded-lg text-xs">
                     {maxTokens} Tokens
                   </span>
@@ -257,18 +261,18 @@ export const ApiModels: React.FC = () => {
                   step="50"
                   value={maxTokens}
                   onChange={(e) => setMaxTokens(parseInt(e.target.value, 10) || 100)}
-                  className="w-full h-10 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full h-10 bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-2 text-xs font-mono text-[#F3F6FF] focus:outline-none focus:border-[#4F46E5]"
                 />
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-800 flex justify-end">
+            <div className="pt-4 border-t border-[#1C2C4B] flex justify-end">
               <button 
                 type="submit"
                 disabled={saveConfigMutation.isPending}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-glow-sm disabled:opacity-50"
+                className="btn-primary-gradient px-6 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 disabled:opacity-50"
               >
-                {saveSuccess ? <Check className="w-4 h-4 text-emerald-300" /> : <Save className="w-4 h-4" />}
+                {saveSuccess ? <Check className="w-4 h-4 text-[#10D6A0]" /> : <Save className="w-4 h-4" />}
                 {saveConfigMutation.isPending
                   ? 'Saving Config...'
                   : saveSuccess
@@ -283,15 +287,15 @@ export const ApiModels: React.FC = () => {
 
         {/* Info Sidebar */}
         <aside className="space-y-6">
-          <div className="glass-card p-6 rounded-3xl border border-slate-800/80 space-y-4 text-xs text-slate-300 leading-relaxed">
-            <h3 className="font-display font-bold text-sm text-white flex items-center gap-2">
+          <div className="bg-[#0D1730] border border-[#1C2C4B] p-6 rounded-2xl shadow-xl space-y-4 text-xs text-[#A3B3CF] leading-relaxed">
+            <h3 className="font-display font-bold text-sm text-[#F3F6FF] flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-indigo-400" />
               Manual String Models
             </h3>
             <p>Your LLM configuration defines the default AI provider, model name, and generation hyperparameters for all chatbots in your workspace.</p>
-            <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 space-y-1 text-indigo-200">
-              <span className="font-bold block text-white">Manual String Entry:</span>
-              <p className="text-[11px] leading-relaxed">You can manually enter any model string name supported by your API provider (e.g. gpt-4o, deepseek-chat, claude-3-5-sonnet-20241022).</p>
+            <div className="p-4 bg-[#101D39] rounded-xl border border-[#1C2C4B] space-y-1 text-[#C7D2FE]">
+              <span className="font-bold block text-[#F3F6FF]">Manual String Entry:</span>
+              <p className="text-[11px] leading-relaxed text-[#71829F]">You can manually enter any model string name supported by your API provider (e.g. gpt-4o, deepseek-chat, claude-3-5-sonnet-20241022).</p>
             </div>
           </div>
         </aside>
