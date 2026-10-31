@@ -13,6 +13,7 @@ export const ApiModels: React.FC = () => {
   // Form states for LLM Configuration
   const [provider, setProvider] = useState('openai');
   const [modelName, setModelName] = useState('gpt-4o');
+  const [voiceAgentModel, setVoiceAgentModel] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [temperature, setTemperature] = useState(0.7);
@@ -45,6 +46,7 @@ export const ApiModels: React.FC = () => {
       if (existingConfig.default_model || existingConfig.model) {
         setModelName(existingConfig.default_model || existingConfig.model);
       }
+      if (existingConfig.voice_agent_model) setVoiceAgentModel(existingConfig.voice_agent_model);
       if (existingConfig.api_key) setApiKey(existingConfig.api_key);
       if (existingConfig.base_url) setBaseUrl(existingConfig.base_url);
       if (existingConfig.temperature !== undefined) setTemperature(existingConfig.temperature);
@@ -76,6 +78,7 @@ export const ApiModels: React.FC = () => {
       config_type: provider === 'custom' ? 'custom' : 'provider',
       provider,
       default_model: modelName,
+      voice_agent_model: voiceAgentModel.trim() || null,
       model: modelName,
       api_key: apiKey,
       base_url: baseUrl,
@@ -166,6 +169,18 @@ export const ApiModels: React.FC = () => {
                 className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-3 text-xs font-mono text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
               />
               <p className="text-[11px] text-[#71829F]">Type any string model name supported by your LLM API endpoint.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#A3B3CF]">Voice Agent Model</label>
+              <input
+                type="text"
+                value={voiceAgentModel}
+                onChange={(e) => setVoiceAgentModel(e.target.value)}
+                placeholder="e.g. gpt-4o-realtime-preview"
+                className="w-full bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-3 text-xs font-mono text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
+              />
+              <p className="text-[11px] text-[#71829F]">Choose a model for voice conversations. Leave blank until voice is configured.</p>
             </div>
 
             {provider === 'custom' && (

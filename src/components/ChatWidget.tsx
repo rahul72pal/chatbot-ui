@@ -21,7 +21,7 @@ const ChatWidgetContent: React.FC = () => {
       }`}
     >
       {isOpen ? (
-        <div className="w-full h-[540px] max-h-[calc(100vh-100px)] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative border border-slate-200 bg-white animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div className="w-full h-[540px] max-h-[calc(100vh-100px)] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative border border-[#1C2C4B] bg-[#080E1B] animate-in fade-in slide-in-from-bottom-4 duration-200">
           <ChatWindow onClose={() => toggleChat(false)} />
         </div>
       ) : (

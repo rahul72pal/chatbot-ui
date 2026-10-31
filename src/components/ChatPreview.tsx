@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MessageSquare, Sparkles } from 'lucide-react';
+import { MessageSquare, Sparkles, Mic } from 'lucide-react';
 import ChatWindow from './ChatWindow';
 
 interface ChatPreviewProps {
@@ -20,6 +20,7 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
   bubbleStyle
 }) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [previewMode, setPreviewMode] = useState<'chat' | 'voice'>('chat');
 
   const getLauncherClasses = () => {
     const base = "w-14 h-14 shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-105 duration-150 text-white z-20";
@@ -75,17 +76,7 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
         }`}
       >
         {isOpen ? (
-          <div className="w-full h-[400px] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative border border-[#1C2C4B] bg-[#080E1B]">
-            <div className="absolute top-4 right-3 z-20 flex items-center gap-1.5 text-white/80">
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="hover:text-white p-1 hover:bg-white/10 rounded transition-colors"
-                aria-label="Minimize chat"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
+          <div className="w-full h-[440px] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative border border-[#1C2C4B] bg-[#080E1B]">
             <ChatWindow 
               name={name}
               welcomeMessage={welcomeMessage}
@@ -94,16 +85,27 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
               bubbleStyle={bubbleStyle}
               interactive={true}
               showDebugToggle={false}
+              defaultMode={previewMode}
+              onClose={() => setIsOpen(false)}
             />
           </div>
         ) : (
-          <div 
-            onClick={() => setIsOpen(true)}
-            className={getLauncherClasses()}
-            style={{ backgroundColor: themeColor }}
-            title="Open assistant"
-          >
-            <MessageSquare className="w-6 h-6" />
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => { setPreviewMode('voice'); setIsOpen(true); }}
+              className="w-12 h-12 rounded-full shadow-lg bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 duration-150 text-white z-20 border border-white/20"
+              title="Open Voice Agent"
+            >
+              <Mic className="w-5 h-5 text-white animate-pulse" />
+            </button>
+            <button 
+              onClick={() => { setPreviewMode('chat'); setIsOpen(true); }}
+              className={getLauncherClasses()}
+              style={{ backgroundColor: themeColor }}
+              title="Open Chat Assistant"
+            >
+              <MessageSquare className="w-6 h-6" />
+            </button>
           </div>
         )}
       </div>

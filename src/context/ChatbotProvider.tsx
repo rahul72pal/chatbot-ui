@@ -13,6 +13,7 @@ export interface ChatbotConfig {
   interactive?: boolean;
   showDebugToggle?: boolean;
   showWelcomeTooltip?: boolean;
+  defaultMode?: 'chat' | 'voice';
   onQueryExecuted?: (query: string, results: any) => void;
 }
 
@@ -20,6 +21,7 @@ export interface ChatbotContextState {
   config: ChatbotConfig;
   messages: Message[];
   isOpen: boolean;
+  mode: 'chat' | 'voice';
   isStreaming: boolean;
   streamStatus: string | null;
   activeTool: string | null;
@@ -28,6 +30,10 @@ export interface ChatbotContextState {
   sendMessage: (text: string) => void;
   clearChat: () => void;
   toggleChat: (show?: boolean) => void;
+  setMode: (mode: 'chat' | 'voice') => void;
+  toggleMode: () => void;
+  openWithMode: (mode: 'chat' | 'voice') => void;
+  handleVoiceTurnComplete: (transcript: string, reply: string) => void;
   setDebugMode: React.Dispatch<React.SetStateAction<boolean>>;
   toggleCitation: (msgId: string) => void;
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
@@ -53,9 +59,11 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
   showDebugToggle = true,
   showWelcomeTooltip = true,
   defaultOpen = false,
+  defaultMode = 'chat',
   onQueryExecuted
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [mode, setMode] = useState<'chat' | 'voice'>(defaultMode);
   const [messages, setMessages] = useState<Message[]>([]);
   const [debugMode, setDebugMode] = useState(true);
   const [expandedCitations, setExpandedCitations] = useState<Record<string, boolean>>({});
@@ -96,6 +104,33 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     setIsOpen(prev => (typeof show === 'boolean' ? show : !prev));
   }, []);
 
+  const toggleMode = useCallback(() => {
+    setMode(prev => (prev === 'chat' ? 'voice' : 'chat'));
+  }, []);
+
+  const openWithMode = useCallback((newMode: 'chat' | 'voice' = 'chat') => {
+    setMode(newMode);
+    setIsOpen(true);
+  }, []);
+
+  const handleVoiceTurnComplete = useCallback((transcript: string, reply: string) => {
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `voice-msg-${Date.now()}-user`,
+        sender: 'user',
+        content: transcript,
+        timestamp: 'Just now'
+      },
+      {
+        id: `voice-msg-${Date.now()}-assistant`,
+        sender: 'assistant',
+        content: reply,
+        timestamp: 'Just now'
+      }
+    ]);
+  }, []);
+
   const toggleCitation = useCallback((msgId: string) => {
     setExpandedCitations(prev => ({
       ...prev,
@@ -131,6 +166,7 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     interactive,
     showDebugToggle,
     showWelcomeTooltip,
+    defaultMode,
     onQueryExecuted
   };
 
@@ -138,6 +174,7 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     config,
     messages,
     isOpen,
+    mode,
     isStreaming,
     streamStatus,
     activeTool,
@@ -146,6 +183,10 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     sendMessage,
     clearChat,
     toggleChat,
+    setMode,
+    toggleMode,
+    openWithMode,
+    handleVoiceTurnComplete,
     setDebugMode,
     toggleCitation,
     setMessages

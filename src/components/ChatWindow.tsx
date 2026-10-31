@@ -3,6 +3,7 @@ import { ChatbotContext, ChatbotProvider } from '../context/ChatbotProvider';
 import ChatHeader from './ChatHeader';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
+import VoiceAgentView from './VoiceAgentView';
 
 export interface ChatWindowProps {
   chatbotId?: string;
@@ -15,6 +16,7 @@ export interface ChatWindowProps {
   onQueryExecuted?: (query: string, results: any) => void;
   showDebugToggle?: boolean;
   onClose?: () => void;
+  defaultMode?: 'chat' | 'voice';
 }
 
 const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
@@ -24,6 +26,8 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
   const {
     config,
     messages,
+    mode,
+    setMode,
     isStreaming,
     streamStatus,
     activeTool,
@@ -32,8 +36,24 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     sendMessage,
     clearChat,
     setDebugMode,
-    toggleCitation
+    toggleCitation,
+    handleVoiceTurnComplete
   } = context;
+
+  if (mode === 'voice') {
+    return (
+      <VoiceAgentView
+        chatbotId={context.config.chatbotId}
+        botName={config.name}
+        themeColor={config.themeColor}
+        avatar={config.avatar}
+        welcomeMessage={config.welcomeMessage}
+        onSwitchToChat={() => setMode('chat')}
+        onClose={onClose}
+        onTurnComplete={handleVoiceTurnComplete}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-[#080E1B] border border-[#1C2C4B] rounded-2xl overflow-hidden h-full shadow-2xl">
@@ -47,6 +67,7 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         onSetDebugMode={setDebugMode}
         onClearChat={clearChat}
         onClose={onClose}
+        onToggleVoice={() => setMode('voice')}
       />
 
       <MessageList
@@ -63,6 +84,7 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
       <ChatInput
         onSend={sendMessage}
+        onVoiceClick={() => setMode('voice')}
         interactive={config.interactive}
         isStreaming={isStreaming}
         themeColor={config.themeColor}
@@ -81,8 +103,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   interactive = true,
   onQueryExecuted,
   showDebugToggle = true,
-  onClose
+  onClose,
+  defaultMode = 'chat'
 }) => {
+  const existingContext = useContext(ChatbotContext);
+  if (existingContext) {
+    return <ChatWindowInner onClose={onClose} />;
+  }
+
   return (
     <ChatbotProvider
       chatbotId={chatbotId}
@@ -93,6 +121,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       bubbleStyle={bubbleStyle}
       interactive={interactive}
       showDebugToggle={showDebugToggle}
+      defaultMode={defaultMode}
       onQueryExecuted={onQueryExecuted}
     >
       <ChatWindowInner onClose={onClose} />

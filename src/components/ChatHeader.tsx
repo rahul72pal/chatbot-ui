@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, HelpCircle, MessageSquare, Headphones, X, RotateCcw } from 'lucide-react';
+import { Bot, HelpCircle, MessageSquare, Headphones, X, RotateCcw, Mic } from 'lucide-react';
 
 interface ChatHeaderProps {
   name?: string;
@@ -11,6 +11,7 @@ interface ChatHeaderProps {
   onSetDebugMode?: (val: boolean) => void;
   onClearChat?: () => void;
   onClose?: () => void;
+  onToggleVoice?: () => void;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
@@ -21,7 +22,8 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   debugMode = true,
   onSetDebugMode,
   onClearChat,
-  onClose
+  onClose,
+  onToggleVoice
 }) => {
   const getAvatarIcon = () => {
     if (avatar === 'faq' || avatar === 'quiz') return <HelpCircle className="w-4 h-4" />;
@@ -48,7 +50,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2">
+        {onToggleVoice && (
+          <button
+            onClick={onToggleVoice}
+            className="px-2.5 py-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 hover:from-indigo-500/30 hover:to-purple-500/30 text-indigo-300 hover:text-white border border-indigo-500/40 rounded-lg transition-all flex items-center gap-1.5 text-[10px] font-bold shadow-sm"
+            title="Switch to Voice Agent"
+          >
+            <Mic className="w-3 h-3 text-cyan-400 animate-pulse" />
+            <span>Voice</span>
+          </button>
+        )}
+
         {onClearChat && (
           <button
             onClick={onClearChat}
