@@ -60,6 +60,7 @@ export const DedicatedPreview: React.FC = () => {
   const embedScript = `<script 
   src="${BASE_URL}/widget.js" 
   data-chatbot-id="${botId || 'YOUR_BOT_ID'}" 
+  data-api-base="${BASE_URL}"
   defer>
 </script>`;
 

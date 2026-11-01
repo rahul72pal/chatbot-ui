@@ -28,11 +28,20 @@
     var botId = currentScript ? (currentScript.getAttribute('data-chatbot-id') || currentScript.getAttribute('data-bot-id')) : 'test-bot';
     if (!botId) botId = 'test-bot';
 
-    var apiBase = 'http://localhost:8000';
-    if (currentScript && currentScript.src && currentScript.src.indexOf('http') === 0) {
+    var explicitBase = currentScript ? (currentScript.getAttribute('data-api-base') || currentScript.getAttribute('data-backend-url')) : null;
+    if (!explicitBase && typeof window !== 'undefined' && window.YCB_API_BASE) {
+      explicitBase = window.YCB_API_BASE;
+    }
+
+    var apiBase = explicitBase || 'http://localhost:8000';
+    if (!explicitBase && currentScript && currentScript.src && currentScript.src.indexOf('http') === 0) {
       try {
         var urlObj = new URL(currentScript.src);
-        apiBase = urlObj.origin;
+        if (['5173', '5174', '3000', '4173'].indexOf(urlObj.port) !== -1) {
+          apiBase = urlObj.protocol + '//' + urlObj.hostname + ':8000';
+        } else {
+          apiBase = urlObj.origin;
+        }
       } catch (e) {}
     }
 
@@ -369,66 +378,17 @@
         var processor = micAudioCtx.createScriptProcessor(4096, 1, 1);
         micProcessor = processor;
 
-        var preRollBuffer = [];
-        var consecutiveSpeechFrames = 0;
-
         processor.onaudioprocess = function (e) {
           if (!ws || ws.readyState !== WebSocket.OPEN) return;
           var channelData = e.inputBuffer.getChannelData(0);
+
           var sumSquares = 0;
-          var zeroCrossings = 0;
-          for (var i = 0; i < channelData.length; i++) {
-            var sample = channelData[i];
-            sumSquares += sample * sample;
-            if (i > 0 && ((sample >= 0 && channelData[i - 1] < 0) || (sample < 0 && channelData[i - 1] >= 0))) {
-              zeroCrossings++;
-            }
-          }
-          var micRms = Math.sqrt(sumSquares / channelData.length);
-          var zcr = zeroCrossings / channelData.length;
-          var norm = Math.min(100, Math.round(micRms * 350));
-          if (norm > 15 && orbRing) {
-            orbRing.style.transform = 'scale(' + (1 + norm / 200) + ')';
-          }
+          for (var i = 0; i < channelData.length; i++) sumSquares += channelData[i] * channelData[i];
+          var norm = Math.min(100, Math.round(Math.sqrt(sumSquares / channelData.length) * 350));
+          if (norm > 15 && orbRing) orbRing.style.transform = 'scale(' + (1 + norm / 200) + ')';
 
-          var isSpeaking = (window.speechSynthesis && window.speechSynthesis.speaking) || (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime);
           var pcm16 = downsampleTo16k(channelData, micAudioCtx.sampleRate);
-
-          if (isSpeaking) {
-            preRollBuffer.push(pcm16.buffer);
-            if (preRollBuffer.length > 5) preRollBuffer.shift();
-
-            var speakerRms = pcmPlayer.getPlaybackRms();
-            var dynamicEchoFloor = Math.max(0.038, speakerRms * 0.45);
-            var isSpeechCandidate = micRms >= dynamicEchoFloor && zcr > 0.015 && zcr < 0.38;
-
-            if (isSpeechCandidate) {
-              consecutiveSpeechFrames++;
-            } else {
-              consecutiveSpeechFrames = 0;
-            }
-
-            if (consecutiveSpeechFrames >= 3) {
-              consecutiveSpeechFrames = 0;
-              stopAudioPlayback();
-              if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: 'interrupt', turn_id: currentVoiceTurnId || undefined }));
-                while (preRollBuffer.length > 0) {
-                  ws.send(preRollBuffer.shift());
-                }
-              }
-              updateVoiceUI('listening');
-            }
-            return;
-          }
-
-          preRollBuffer = [];
-          consecutiveSpeechFrames = 0;
-          try {
-            ws.send(pcm16.buffer);
-          } catch (err) {
-            console.error('[Voice WS] Mic send error:', err);
-          }
+          try { ws.send(pcm16.buffer); } catch (err) { console.error('[Voice WS] Mic send error:', err); }
         };
 
         source.connect(processor);
@@ -461,6 +421,7 @@
     function setWidgetMode(mode) {
       currentMode = mode;
       if (currentMode === 'voice') {
+        pcmPlayer.init();
         chatView.style.display = 'none';
         voiceView.style.display = 'flex';
         modeBtnText.innerText = 'Chat';
@@ -487,15 +448,21 @@
       nextTime: 0,
       activeSources: [],
       currentPlaybackRms: 0,
+      onPlaybackStart: null,
+      onPlaybackEnd: null,
+      carry: null,
+
       init: function () {
         var AC = window.AudioContext || window.webkitAudioContext;
         if (!this.ctx || this.ctx.state === 'closed') {
           this.ctx = new AC();
           this.gainNode = this.ctx.createGain();
           this.gainNode.connect(this.ctx.destination);
+          this.nextTime = 0;                 // reset ONLY for a brand-new context
         }
-        if (this.ctx.state === 'suspended') this.ctx.resume().catch(function () {});
-        this.nextTime = this.ctx.currentTime;
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(function () {});
+        }
       },
       setVolume: function (vol) {
         if (this.gainNode && this.ctx) {
@@ -504,9 +471,19 @@
       },
       play: function (buffer) {
         this.init();
-        var ctx = this.ctx;
-        var int16 = new Int16Array(buffer);
-        if (int16.length === 0) return;
+        var ctx = this.ctx, self = this;
+
+        // keep int16 alignment across network frames (same as the hook)
+        var incoming = new Uint8Array(buffer);
+        var bytes = new Uint8Array(incoming.length + (this.carry === null ? 0 : 1));
+        var off = 0;
+        if (this.carry !== null) { bytes[0] = this.carry; off = 1; this.carry = null; }
+        bytes.set(incoming, off);
+        if (bytes.length % 2 === 1) this.carry = bytes[bytes.length - 1];
+        var usable = bytes.length - (bytes.length % 2);
+        if (!usable) return;
+        var int16 = new Int16Array(bytes.buffer, 0, usable / 2);
+
         var f32 = new Float32Array(int16.length);
         var sumSquares = 0;
         for (var i = 0; i < int16.length; i++) {
@@ -514,25 +491,27 @@
           f32[i] = v;
           sumSquares += v * v;
         }
-        var chunkRms = Math.sqrt(sumSquares / int16.length);
-        this.currentPlaybackRms = Math.max(chunkRms, this.currentPlaybackRms * 0.8);
+        this.currentPlaybackRms = Math.max(Math.sqrt(sumSquares / int16.length), this.currentPlaybackRms * 0.8);
 
         var audioBuf = ctx.createBuffer(1, f32.length, 24000);
         audioBuf.getChannelData(0).set(f32);
         var src = ctx.createBufferSource();
         src.buffer = audioBuf;
         src.connect(this.gainNode || ctx.destination);
-        var now = ctx.currentTime;
-        var start = Math.max(now, this.nextTime);
+        var start = Math.max(ctx.currentTime, this.nextTime);
         src.start(start);
         this.nextTime = start + audioBuf.duration;
-        var self = this;
+
+        if (this.activeSources.length === 0 && typeof this.onPlaybackStart === 'function') {
+          this.onPlaybackStart();
+        }
         this.activeSources.push(src);
         src.onended = function () {
           var idx = self.activeSources.indexOf(src);
           if (idx !== -1) self.activeSources.splice(idx, 1);
           if (self.activeSources.length === 0) {
             self.currentPlaybackRms = 0;
+            if (typeof self.onPlaybackEnd === 'function') self.onPlaybackEnd();
           }
         };
       },
@@ -543,31 +522,61 @@
         for (var i = 0; i < this.activeSources.length; i++) {
           try { this.activeSources[i].stop(); } catch (e) {}
         }
+        var hadSources = this.activeSources.length > 0;
         this.activeSources = [];
         this.currentPlaybackRms = 0;
         this.nextTime = 0;
+        this.carry = null;
         this.setVolume(1.0);
+        if (hadSources && typeof this.onPlaybackEnd === 'function') {
+          this.onPlaybackEnd();
+        }
       }
     };
 
     function initVoiceAgentWs() {
+      pcmPlayer.init();
       var wsProto = apiBase.indexOf('https') === 0 ? 'wss' : 'ws';
-      var wsHost = apiBase.replace(/^https?:\/\//, '');
-      var wsUrl = wsProto + '://' + wsHost + '/ws/voice';
+      var wsHost = apiBase.replace(/^https?:\/\//, '').split('/')[0];
+      var wsUrl = wsProto + '://' + wsHost + '/ws/voice?chatbot_id=' + encodeURIComponent(botId);
+      if (voiceSessionId) {
+        wsUrl += '&session_id=' + encodeURIComponent(voiceSessionId);
+      }
 
       try {
         if (voiceWs) {
+          voiceWs.onopen = null;
+          voiceWs.onmessage = null;
+          voiceWs.onerror = null;
+          voiceWs.onclose = null;
           try { voiceWs.close(); } catch(e){}
+          voiceWs = null;
         }
+
+        updateVoiceUI('connecting');
         voiceWs = new WebSocket(wsUrl);
         voiceWs.binaryType = 'arraybuffer';
+
+        pcmPlayer.onPlaybackStart = function () {
+          if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
+            try { voiceWs.send(JSON.stringify({ type: 'playback', state: 'start' })); } catch (e) {}
+          }
+        };
+        pcmPlayer.onPlaybackEnd = function () {
+          if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
+            try { voiceWs.send(JSON.stringify({ type: 'playback', state: 'end' })); } catch (e) {}
+          }
+        };
+
         voiceWs.onopen = function () {
           console.info('[Voice WS] Connected; streaming mic');
+          updateVoiceUI('idle');
           voiceWs.send(JSON.stringify({ type: 'config', language: 'en' }));
           var welcome = config.welcome_message || 'Hello! How can I help you today?';
           voiceWs.send(JSON.stringify({ type: 'greeting', text: welcome }));
           startVoiceStreaming(voiceWs);
         };
+
         voiceWs.onmessage = function (ev) {
           if (ev.data instanceof ArrayBuffer) {
             if (window.speechSynthesis && window.speechSynthesis.speaking) {
@@ -584,13 +593,31 @@
                 voiceSessionId = m.session_id;
               } else if (m.type === 'audio_start') {
                 currentVoiceTurnId = m.turn_id || null;
+                pcmPlayer.init();
+              } else if (m.type === 'state') {
+                if (m.state === 'speaking') {
+                  updateVoiceUI('speaking');
+                } else if (m.state === 'thinking') {
+                  updateVoiceUI('processing');
+                } else if (m.state === 'listening') {
+                  updateVoiceUI('listening');
+                } else if (m.state === 'idle') {
+                  var isSpk = (window.speechSynthesis && window.speechSynthesis.speaking) ||
+                              (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime) ||
+                              (pcmPlayer.activeSources && pcmPlayer.activeSources.length > 0);
+                  if (!isSpk) {
+                    updateVoiceUI('idle');
+                  }
+                }
               } else if (m.type === 'duck_audio') {
                 pcmPlayer.setVolume(0.3);
               } else if (m.type === 'unduck_audio') {
                 pcmPlayer.setVolume(1.0);
               } else if (m.type === 'speech_start') {
-                var isSpk = (window.speechSynthesis && window.speechSynthesis.speaking) || (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime);
-                if (!isSpk) {
+                var isSpk2 = (window.speechSynthesis && window.speechSynthesis.speaking) ||
+                             (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime) ||
+                             (pcmPlayer.activeSources && pcmPlayer.activeSources.length > 0);
+                if (!isSpk2) {
                   updateVoiceUI('listening');
                 }
               } else if (m.type === 'tts_fallback') {
@@ -624,29 +651,52 @@
                 if (!window.speechSynthesis || !window.speechSynthesis.speaking) {
                   updateVoiceUI('idle');
                 }
+              } else if (m.type === 'end_call') {
+                var endNotice = m.reason === 'inactivity' ? '— Call disconnected due to inactivity —' : '— Call ended —';
+                voiceTranscript.innerHTML = '<em>' + endNotice + '</em>';
+                stopAudioPlayback();
+                stopVoiceStreaming();
+                updateVoiceUI('idle');
+              } else if (m.type === 'error') {
+                console.warn('[Voice WS] Server reported error:', m);
+                if (m.code !== 'no_speech_detected' && m.code !== 'tts_failed' && m.code !== 'tts_no_audio') {
+                  updateVoiceUI('error');
+                }
               }
             } catch (e) {}
           }
         };
+
         voiceWs.onerror = function (e) {
           console.warn('[Voice WS] Error:', e);
+          updateVoiceUI('error');
         };
-        voiceWs.onclose = function () {
+
+        voiceWs.onclose = function (ev) {
           stopVoiceStreaming();
+          voiceWs = null;
+          if (isOpen && currentMode === 'voice') {
+            updateVoiceUI('error');
+          }
         };
       } catch (e) {
-        console.warn('WebSocket init note:', e);
+        console.warn('WebSocket init exception:', e);
+        updateVoiceUI('error');
       }
     }
 
     function handleVoiceMicClick() {
+      pcmPlayer.init();
       if (micAudioCtx && micAudioCtx.state === 'suspended') {
         micAudioCtx.resume().catch(function () {});
       }
-      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+      var isPlaying = (window.speechSynthesis && window.speechSynthesis.speaking) ||
+                      (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime) ||
+                      (pcmPlayer.activeSources && pcmPlayer.activeSources.length > 0);
+      if (isPlaying) {
         stopAudioPlayback();
         if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
-          try { voiceWs.send(JSON.stringify({ type: 'interrupt' })); } catch (e) {}
+          try { voiceWs.send(JSON.stringify({ type: 'interrupt', turn_id: currentVoiceTurnId || undefined })); } catch (e) {}
         }
         updateVoiceUI('listening');
         return;
@@ -809,6 +859,8 @@
         voiceStatusSub.innerText = 'Transcribing and thinking...';
         voiceMicBtn.style.background = '#8B5CF6';
         voiceMicBtn.style.boxShadow = '0 0 30px rgba(139, 92, 246, 0.6)';
+        orbRing.style.transform = 'scale(1.05)';
+        orbRing.style.borderColor = 'rgba(139, 92, 246, 0.5)';
       } else if (state === 'speaking') {
         voiceStatusTitle.innerText = 'Speaking...';
         voiceStatusSub.innerText = 'Tap to interrupt speech';
@@ -816,6 +868,20 @@
         voiceMicBtn.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.6)';
         orbRing.style.transform = 'scale(1.15)';
         orbRing.style.borderColor = 'rgba(16, 214, 160, 0.5)';
+      } else if (state === 'connecting') {
+        voiceStatusTitle.innerText = 'Connecting...';
+        voiceStatusSub.innerText = 'Setting up your voice session...';
+        voiceMicBtn.style.background = 'linear-gradient(135deg, ' + config.theme_color + ', #9333ea)';
+        voiceMicBtn.style.boxShadow = '0 0 30px ' + config.theme_color + '80';
+        orbRing.style.transform = 'scale(1)';
+        orbRing.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+      } else if (state === 'error') {
+        voiceStatusTitle.innerText = 'Connection Issue';
+        voiceStatusSub.innerText = 'Tap orb to reconnect';
+        voiceMicBtn.style.background = '#EF4444';
+        voiceMicBtn.style.boxShadow = '0 0 30px rgba(239, 68, 68, 0.5)';
+        orbRing.style.transform = 'scale(1)';
+        orbRing.style.borderColor = 'rgba(239, 68, 68, 0.4)';
       } else {
         voiceStatusTitle.innerText = 'Tap to Speak';
         voiceStatusSub.innerText = 'Speak clearly into your microphone';
