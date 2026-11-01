@@ -140,12 +140,17 @@ export const voiceApi = {
     let wsHost = 'localhost:8000';
     let isSecure = false;
     try {
-      const parsed = new URL(BASE_URL);
+      const base = (typeof window !== 'undefined' && BASE_URL.startsWith('/'))
+        ? `${window.location.origin}${BASE_URL}`
+        : BASE_URL;
+      const parsed = new URL(base);
       isSecure = parsed.protocol === 'https:';
       wsHost = parsed.host;
     } catch {
-      isSecure = BASE_URL.startsWith('https://');
-      wsHost = BASE_URL.replace(/^https?:\/\//, '').split('/')[0] || 'localhost:8000';
+      isSecure = typeof window !== 'undefined' ? window.location.protocol === 'https:' : BASE_URL.startsWith('https://');
+      wsHost = (typeof window !== 'undefined' && window.location.host)
+        ? window.location.host
+        : (BASE_URL.replace(/^https?:\/\//, '').split('/')[0] || 'localhost:8000');
     }
 
     const params = new URLSearchParams();

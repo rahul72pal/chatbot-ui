@@ -221,6 +221,7 @@
     var currentMode = 'chat'; // 'chat' or 'voice'
     var activeConversationId = null;
     var voiceSessionId = null;
+    var currentVoiceTurnId = null;
     var isRecording = false;
     var mediaRecorder = null;
     var audioChunks = [];
@@ -246,6 +247,7 @@
     var launcherGroup, launcherBtn, voiceLauncherBtn, windowEl, closeBtn, refreshBtn, toggleModeBtn, modeBtnText;
     var formEl, inputEl, micTriggerBtn, messagesEl, tooltipEl, headerSub;
     var chatView, voiceView, voiceMicBtn, orbRing, voiceStatusTitle, voiceStatusSub, voiceTranscript;
+    var currentAssistantMsgBubble = null;
 
     function bindEvents() {
       launcherGroup = document.getElementById('ycb-launcher-group');
@@ -367,26 +369,61 @@
         var processor = micAudioCtx.createScriptProcessor(4096, 1, 1);
         micProcessor = processor;
 
+        var preRollBuffer = [];
+        var consecutiveSpeechFrames = 0;
+
         processor.onaudioprocess = function (e) {
           if (!ws || ws.readyState !== WebSocket.OPEN) return;
           var channelData = e.inputBuffer.getChannelData(0);
-          var sum = 0;
+          var sumSquares = 0;
+          var zeroCrossings = 0;
           for (var i = 0; i < channelData.length; i++) {
-            sum += Math.abs(channelData[i]);
+            var sample = channelData[i];
+            sumSquares += sample * sample;
+            if (i > 0 && ((sample >= 0 && channelData[i - 1] < 0) || (sample < 0 && channelData[i - 1] >= 0))) {
+              zeroCrossings++;
+            }
           }
-          var avg = sum / channelData.length;
-          var norm = Math.min(100, Math.round(avg * 350));
+          var micRms = Math.sqrt(sumSquares / channelData.length);
+          var zcr = zeroCrossings / channelData.length;
+          var norm = Math.min(100, Math.round(micRms * 350));
           if (norm > 15 && orbRing) {
             orbRing.style.transform = 'scale(' + (1 + norm / 200) + ')';
           }
 
           var isSpeaking = (window.speechSynthesis && window.speechSynthesis.speaking) || (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime);
+          var pcm16 = downsampleTo16k(channelData, micAudioCtx.sampleRate);
+
           if (isSpeaking) {
-            var elapsed = Date.now() - assistantSpeakingStartTime;
-            if (elapsed < 1200 || avg < 0.025) return;
+            preRollBuffer.push(pcm16.buffer);
+            if (preRollBuffer.length > 5) preRollBuffer.shift();
+
+            var speakerRms = pcmPlayer.getPlaybackRms();
+            var dynamicEchoFloor = Math.max(0.038, speakerRms * 0.45);
+            var isSpeechCandidate = micRms >= dynamicEchoFloor && zcr > 0.015 && zcr < 0.38;
+
+            if (isSpeechCandidate) {
+              consecutiveSpeechFrames++;
+            } else {
+              consecutiveSpeechFrames = 0;
+            }
+
+            if (consecutiveSpeechFrames >= 3) {
+              consecutiveSpeechFrames = 0;
+              stopAudioPlayback();
+              if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: 'interrupt', turn_id: currentVoiceTurnId || undefined }));
+                while (preRollBuffer.length > 0) {
+                  ws.send(preRollBuffer.shift());
+                }
+              }
+              updateVoiceUI('listening');
+            }
+            return;
           }
 
-          var pcm16 = downsampleTo16k(channelData, micAudioCtx.sampleRate);
+          preRollBuffer = [];
+          consecutiveSpeechFrames = 0;
           try {
             ws.send(pcm16.buffer);
           } catch (err) {
@@ -446,12 +483,24 @@
 
     var pcmPlayer = {
       ctx: null,
+      gainNode: null,
       nextTime: 0,
+      activeSources: [],
+      currentPlaybackRms: 0,
       init: function () {
         var AC = window.AudioContext || window.webkitAudioContext;
-        if (!this.ctx || this.ctx.state === 'closed') this.ctx = new AC();
+        if (!this.ctx || this.ctx.state === 'closed') {
+          this.ctx = new AC();
+          this.gainNode = this.ctx.createGain();
+          this.gainNode.connect(this.ctx.destination);
+        }
         if (this.ctx.state === 'suspended') this.ctx.resume().catch(function () {});
         this.nextTime = this.ctx.currentTime;
+      },
+      setVolume: function (vol) {
+        if (this.gainNode && this.ctx) {
+          this.gainNode.gain.setValueAtTime(vol, this.ctx.currentTime);
+        }
       },
       play: function (buffer) {
         this.init();
@@ -459,21 +508,45 @@
         var int16 = new Int16Array(buffer);
         if (int16.length === 0) return;
         var f32 = new Float32Array(int16.length);
-        for (var i = 0; i < int16.length; i++) f32[i] = int16[i] / 32768;
+        var sumSquares = 0;
+        for (var i = 0; i < int16.length; i++) {
+          var v = int16[i] / 32768;
+          f32[i] = v;
+          sumSquares += v * v;
+        }
+        var chunkRms = Math.sqrt(sumSquares / int16.length);
+        this.currentPlaybackRms = Math.max(chunkRms, this.currentPlaybackRms * 0.8);
+
         var audioBuf = ctx.createBuffer(1, f32.length, 24000);
         audioBuf.getChannelData(0).set(f32);
         var src = ctx.createBufferSource();
         src.buffer = audioBuf;
-        src.connect(ctx.destination);
+        src.connect(this.gainNode || ctx.destination);
         var now = ctx.currentTime;
         var start = Math.max(now, this.nextTime);
         src.start(start);
         this.nextTime = start + audioBuf.duration;
+        var self = this;
+        this.activeSources.push(src);
+        src.onended = function () {
+          var idx = self.activeSources.indexOf(src);
+          if (idx !== -1) self.activeSources.splice(idx, 1);
+          if (self.activeSources.length === 0) {
+            self.currentPlaybackRms = 0;
+          }
+        };
+      },
+      getPlaybackRms: function () {
+        return (this.activeSources.length > 0) ? this.currentPlaybackRms : 0;
       },
       stop: function () {
-        if (this.ctx && this.ctx.state !== 'closed') {
-          this.nextTime = this.ctx.currentTime;
+        for (var i = 0; i < this.activeSources.length; i++) {
+          try { this.activeSources[i].stop(); } catch (e) {}
         }
+        this.activeSources = [];
+        this.currentPlaybackRms = 0;
+        this.nextTime = 0;
+        this.setVolume(1.0);
       }
     };
 
@@ -493,7 +566,6 @@
           voiceWs.send(JSON.stringify({ type: 'config', language: 'en' }));
           var welcome = config.welcome_message || 'Hello! How can I help you today?';
           voiceWs.send(JSON.stringify({ type: 'greeting', text: welcome }));
-          speakFallback(welcome);
           startVoiceStreaming(voiceWs);
         };
         voiceWs.onmessage = function (ev) {
@@ -510,6 +582,12 @@
               var m = JSON.parse(ev.data);
               if (m.type === 'session_created') {
                 voiceSessionId = m.session_id;
+              } else if (m.type === 'audio_start') {
+                currentVoiceTurnId = m.turn_id || null;
+              } else if (m.type === 'duck_audio') {
+                pcmPlayer.setVolume(0.3);
+              } else if (m.type === 'unduck_audio') {
+                pcmPlayer.setVolume(1.0);
               } else if (m.type === 'speech_start') {
                 var isSpk = (window.speechSynthesis && window.speechSynthesis.speaking) || (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime);
                 if (!isSpk) {
@@ -521,22 +599,28 @@
                 }
               } else if (m.type === 'transcript') {
                 if (m.role === 'user') {
+                  currentAssistantMsgBubble = null;
                   voiceTranscript.innerHTML = '<strong>You:</strong> ' + m.text;
                   updateVoiceUI('processing');
                 } else {
-                  voiceTranscript.innerHTML += '<br/><strong>Agent:</strong> ' + m.text;
-                  appendMessage('assistant', m.text);
-                  // Play via speech synthesis if binary PCM stream didn't arrive
-                  setTimeout(function () {
-                    if (!pcmPlayer.ctx || pcmPlayer.nextTime <= pcmPlayer.ctx.currentTime) {
-                      speakFallback(m.text);
-                    }
-                  }, 250);
+                  voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
+                  if (!currentAssistantMsgBubble) {
+                    currentAssistantMsgBubble = appendMessage('assistant', m.text);
+                  } else {
+                    currentAssistantMsgBubble.innerHTML = renderMarkdown(m.text);
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                  }
+                  if (!m.partial) {
+                    currentAssistantMsgBubble = null;
+                  }
                 }
               } else if (m.type === 'interrupt') {
+                currentAssistantMsgBubble = null;
                 stopAudioPlayback();
                 updateVoiceUI('listening');
               } else if (m.type === 'turn_end') {
+                currentAssistantMsgBubble = null;
+                currentVoiceTurnId = null;
                 if (!window.speechSynthesis || !window.speechSynthesis.speaking) {
                   updateVoiceUI('idle');
                 }
@@ -796,6 +880,102 @@
       msgWrap.appendChild(timeStamp);
       messagesEl.appendChild(msgWrap);
       messagesEl.scrollTop = messagesEl.scrollHeight;
+      return bubble;
+    }
+
+    function appendTypingIndicator() {
+      var id = 'ycb-typing-' + Date.now();
+      var msgWrap = document.createElement('div');
+      msgWrap.id = id;
+      msgWrap.style.display = 'flex';
+      msgWrap.style.flexDirection = 'column';
+      msgWrap.style.alignItems = 'flex-start';
+      msgWrap.style.marginBottom = '4px';
+
+      var bubble = document.createElement('div');
+      bubble.className = 'ycb-inner-bubble';
+      bubble.style.padding = '8px 12px';
+      bubble.style.fontSize = '12px';
+      bubble.style.borderRadius = '14px 14px 14px 4px';
+      bubble.style.backgroundColor = '#101D39';
+      bubble.style.color = '#A3B3CF';
+      bubble.style.border = '1px solid #1C2C4B';
+      bubble.style.display = 'inline-flex';
+      bubble.style.alignItems = 'center';
+      bubble.style.gap = '6px';
+      bubble.style.fontWeight = '500';
+
+      bubble.innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background-color:' + config.theme_color + ';box-shadow:0 0 8px ' + config.theme_color + ';"></span><span>Thinking...</span>';
+
+      msgWrap.appendChild(bubble);
+      messagesEl.appendChild(msgWrap);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return id;
+    }
+
+    function updateTypingIndicator(id, statusText, toolName) {
+      var el = document.getElementById(id);
+      if (!el) {
+        id = appendTypingIndicator();
+        el = document.getElementById(id);
+      }
+      if (el) {
+        var bubble = el.querySelector('.ycb-inner-bubble') || el.querySelector('div');
+        if (bubble) {
+          var iconHtml = '⚡ ';
+          if (toolName === 'web_search' || (statusText && statusText.toLowerCase().indexOf('web') !== -1)) {
+            iconHtml = '🔍 ';
+          } else if (toolName === 'document_search' || (statusText && statusText.toLowerCase().indexOf('knowledge') !== -1)) {
+            iconHtml = '📚 ';
+          }
+          bubble.innerHTML = iconHtml + '<span>' + (statusText || 'Thinking...') + '</span>';
+        }
+      }
+    }
+
+    function updateAssistantLiveBubble(id, text) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var bubble = el.querySelector('.ycb-inner-bubble') || el.querySelector('div');
+      if (bubble) {
+        bubble.style.maxWidth = '85%';
+        bubble.style.padding = '10px 14px';
+        bubble.style.fontSize = '13px';
+        bubble.style.lineHeight = '1.5';
+        bubble.style.backgroundColor = '#101D39';
+        bubble.style.color = '#F3F6FF';
+        bubble.style.border = '1px solid #1C2C4B';
+        bubble.style.wordBreak = 'break-word';
+        bubble.style.display = 'block';
+
+        if (config.bubble_style === 'pill') {
+          bubble.style.borderRadius = '18px 18px 18px 4px';
+        } else if (config.bubble_style === 'square') {
+          bubble.style.borderRadius = '4px';
+        } else {
+          bubble.style.borderRadius = '14px 14px 14px 4px';
+        }
+
+        bubble.innerHTML = renderMarkdown(text);
+      }
+
+      if (!el.querySelector('.ycb-msg-time')) {
+        var timeStamp = document.createElement('span');
+        timeStamp.className = 'ycb-msg-time';
+        timeStamp.style.fontSize = '10px';
+        timeStamp.style.color = '#71829F';
+        timeStamp.style.marginTop = '4px';
+        timeStamp.style.padding = '0 2px';
+        timeStamp.innerText = 'Just now';
+        el.appendChild(timeStamp);
+      }
+    }
+
+    function removeTypingIndicator(id) {
+      var el = document.getElementById(id);
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
     }
 
     function handleMessageSubmit(e) {
@@ -806,18 +986,74 @@
       inputEl.value = '';
       appendMessage('user', text);
 
-      fetch(apiBase + '/chatbot/public/' + botId + '/chat', {
+      var typingId = appendTypingIndicator();
+      var accumulatedText = '';
+
+      fetch(apiBase + '/chatbot/public/' + botId + '/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text, conversation_id: activeConversationId })
       })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.conversation_id) activeConversationId = data.conversation_id;
-        appendMessage('assistant', data.message || "Thank you for reaching out! How else can I assist you today?");
+      .then(function (res) {
+        if (!res.ok) throw new Error('Stream API server returned error');
+        var reader = res.body.getReader();
+        var decoder = new TextDecoder('utf-8');
+        var buffer = '';
+
+        function processChunk(result) {
+          if (result.done) {
+            return;
+          }
+          buffer += decoder.decode(result.value, { stream: true });
+          var lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (line.indexOf('data: ') === 0) {
+              try {
+                var data = JSON.parse(line.substring(6));
+                if (data.type === 'conversation' && data.conversation_id) {
+                  activeConversationId = data.conversation_id;
+                } else if (data.type === 'status') {
+                  updateTypingIndicator(typingId, data.message || 'Thinking...', data.tool);
+                } else if (data.type === 'reasoning_delta') {
+                  updateTypingIndicator(typingId, 'Thinking...', null);
+                } else if (data.type === 'text_delta' && data.delta) {
+                  accumulatedText += data.delta;
+                  updateAssistantLiveBubble(typingId, accumulatedText);
+                  messagesEl.scrollTop = messagesEl.scrollHeight;
+                } else if (data.type === 'done') {
+                  if (data.message && !accumulatedText) {
+                    accumulatedText = data.message;
+                  }
+                  updateAssistantLiveBubble(typingId, accumulatedText);
+                  messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+              } catch (err) {}
+            }
+          }
+          return reader.read().then(processChunk);
+        }
+        return reader.read().then(processChunk);
       })
       .catch(function () {
-        appendMessage('assistant', "Could not reach assistant. Please try again.");
+        // Fallback REST endpoint
+        fetch(apiBase + '/chatbot/public/' + botId + '/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, conversation_id: activeConversationId })
+        })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          removeTypingIndicator(typingId);
+          if (data.conversation_id) activeConversationId = data.conversation_id;
+          appendMessage('assistant', data.message || "Thank you for reaching out! How else can I assist you today?");
+        })
+        .catch(function () {
+          removeTypingIndicator(typingId);
+          appendMessage('assistant', "Could not reach assistant. Please try again.");
+        });
       });
     }
 

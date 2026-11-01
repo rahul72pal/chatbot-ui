@@ -15,6 +15,7 @@ import {
   Headphones,
   Bot,
   Loader2,
+  PhoneOff,
 } from 'lucide-react';
 import { useVoiceAgent } from '../hooks/useVoiceAgent';
 
@@ -55,6 +56,7 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
     stopListening,
     interrupt,
     resetSession,
+    endCall,
   } = useVoiceAgent({
     language: 'en',
     autoInitOnMount: true,
@@ -90,6 +92,10 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
 
   const handleMainButtonClick = () => {
     if (voiceState === 'connecting' || voiceState === 'processing') return;
+    if (voiceState === 'error') {
+      resetSession();
+      return;
+    }
     if (voiceState === 'listening') {
       stopListening();
     } else if (voiceState === 'speaking') {
@@ -277,6 +283,8 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
           >
             {isConnecting || voiceState === 'processing' ? (
               <Loader2 className="w-8 h-8 text-white animate-spin" />
+            ) : voiceState === 'error' ? (
+              <RotateCcw className="w-8 h-8 text-white transition-transform hover:rotate-180 duration-300" />
             ) : voiceState === 'listening' ? (
               <Square className="w-7 h-7 text-white animate-pulse" />
             ) : voiceState === 'speaking' ? (
@@ -313,6 +321,8 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
                       ? '#10D6A0'
                       : voiceState === 'processing'
                       ? '#A855F7'
+                      : voiceState === 'error'
+                      ? '#F43F5E'
                       : isConnecting
                       ? '#F59E0B'
                       : '#2A3C60',
@@ -327,6 +337,8 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
           <h3 className="text-sm font-bold text-[#F3F6FF]">
             {isConnecting
               ? 'Connecting...'
+              : voiceState === 'error'
+              ? 'Connection Issue'
               : voiceState === 'listening'
               ? 'Listening...'
               : voiceState === 'processing'
@@ -338,6 +350,8 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
           <p className="text-[11px] text-[#71829F] mt-0.5">
             {isConnecting
               ? 'Setting up your voice session...'
+              : voiceState === 'error'
+              ? 'Tap orb or retry below to reconnect'
               : voiceState === 'listening'
               ? 'Tap the orb when you are done speaking'
               : voiceState === 'processing'
@@ -347,6 +361,20 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
               : 'Say "Check availability" or ask any question'}
           </p>
         </div>
+
+        {/* End Call Button */}
+        {transport === 'websocket' && voiceState !== 'error' && (
+          <div className="mb-2">
+            <button
+              onClick={endCall}
+              className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 hover:text-rose-100 border border-rose-500/30 rounded-xl text-[11px] font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+              title="Hang Up / Cut Call"
+            >
+              <PhoneOff className="w-3.5 h-3.5 text-rose-400" />
+              <span>Cut Call</span>
+            </button>
+          </div>
+        )}
 
         {/* Error callout */}
         {errorMessage && (

@@ -54,21 +54,36 @@ function downsampleTo16k(input: Float32Array, inputSampleRate: number): Int16Arr
 // ---------------------------------------------------------------------------
 class PcmStreamPlayer {
   private ctx: AudioContext | null = null;
+  private gainNode: GainNode | null = null;
   private nextStartTime: number = 0;
   private sampleRate: number = 24000;
   private activeSources: AudioBufferSourceNode[] = [];
   private trailingPcmByte: number | null = null;
+  // Reported to the server so it knows when the speaker is really silent; the
+  // server uses this to ignore the agent's own (buffered) voice.
+  onPlaybackStart: (() => void) | null = null;
+  onPlaybackEnd: (() => void) | null = null;
+  private playingNotified = false;
+  private currentPlaybackRms = 0;
 
   init(sampleRate = 24000) {
     this.sampleRate = sampleRate;
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (!this.ctx || this.ctx.state === 'closed') {
       this.ctx = new AudioCtx();
+      this.gainNode = this.ctx.createGain();
+      this.gainNode.connect(this.ctx.destination);
     }
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
     this.nextStartTime = this.ctx.currentTime;
+  }
+
+  setVolume(volume: number) {
+    if (this.gainNode && this.ctx) {
+      this.gainNode.gain.setValueAtTime(volume, this.ctx.currentTime);
+    }
   }
 
   playChunk(pcm16Buffer: ArrayBuffer, onLevel?: (lvl: number) => void) {
@@ -98,11 +113,15 @@ class PcmStreamPlayer {
 
     const float32 = new Float32Array(int16.length);
     let sum = 0;
+    let sumSquares = 0;
     for (let i = 0; i < int16.length; i++) {
       const v = int16[i] / 32768;
       float32[i] = v;
       sum += Math.abs(v);
+      sumSquares += v * v;
     }
+    const chunkRms = Math.sqrt(sumSquares / int16.length);
+    this.currentPlaybackRms = Math.max(chunkRms, this.currentPlaybackRms * 0.8);
 
     if (onLevel) {
       const avg = (sum / int16.length) * 100;
@@ -114,17 +133,30 @@ class PcmStreamPlayer {
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    source.connect(this.gainNode || ctx.destination);
 
     const now = ctx.currentTime;
+    // Seamless timeline queue scheduling: starts immediately if timeline is in the past,
+    // otherwise schedules precisely at nextStartTime with zero gaps between chunks.
     const startTime = Math.max(now, this.nextStartTime);
     source.start(startTime);
     this.nextStartTime = startTime + buffer.duration;
 
     this.activeSources.push(source);
+    if (!this.playingNotified) {
+      this.playingNotified = true;
+      this.onPlaybackStart?.();
+    }
     source.onended = () => {
       const idx = this.activeSources.indexOf(source);
       if (idx !== -1) this.activeSources.splice(idx, 1);
+      if (this.activeSources.length === 0) {
+        this.currentPlaybackRms = 0;
+        if (this.playingNotified) {
+          this.playingNotified = false;
+          this.onPlaybackEnd?.();
+        }
+      }
     };
   }
 
@@ -132,7 +164,14 @@ class PcmStreamPlayer {
     return this.activeSources.length > 0;
   }
 
+  getPlaybackRms(): number {
+    return this.isPlaying() ? this.currentPlaybackRms : 0;
+  }
+
   stop() {
+    const wasPlaying = this.playingNotified;
+    this.playingNotified = false;
+    this.currentPlaybackRms = 0;
     for (const s of this.activeSources) {
       try {
         s.stop();
@@ -140,9 +179,9 @@ class PcmStreamPlayer {
     }
     this.activeSources = [];
     this.trailingPcmByte = null;
-    if (this.ctx) {
-      this.nextStartTime = this.ctx.currentTime;
-    }
+    this.nextStartTime = 0;
+    this.setVolume(1.0);
+    if (wasPlaying) this.onPlaybackEnd?.();
   }
 
   close() {
@@ -187,10 +226,19 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
   const lastAssistantTextRef = useRef<string>('');
   const currentTurnAudioChunksRef = useRef<number>(0);
+  const currentAssistantMsgIdRef = useRef<string | null>(null);
+  const currentTurnIdRef = useRef<string | null>(null);
   const audioFallbackTimeoutRef = useRef<any>(null);
   const isSpeakingRef = useRef<boolean>(false);
   const voiceStateRef = useRef<VoiceState>(voiceState);
   const assistantSpeakingStartTimeRef = useRef<number>(0);
+  const sessionIdRef = useRef<string | null>(null);
+  const reconnectAttemptsRef = useRef<number>(0);
+  const intentionalCloseRef = useRef<boolean>(false);
+  const connectWsRef = useRef<((sid?: string | null) => void) | null>(null);
+  const greetedRef = useRef<boolean>(false);
+  const stableConnectionTimeoutRef = useRef<any>(null);
+  const reconnectTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     voiceStateRef.current = voiceState;
@@ -210,6 +258,10 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
   }, [isMuted]);
 
   useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
+  useEffect(() => {
     isComponentMounted.current = true;
     return () => {
       isComponentMounted.current = false;
@@ -219,6 +271,14 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
   }, []);
 
   const cleanupAllAudio = useCallback(() => {
+    if (stableConnectionTimeoutRef.current) {
+      clearTimeout(stableConnectionTimeoutRef.current);
+      stableConnectionTimeoutRef.current = null;
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
@@ -236,6 +296,8 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
       streamRef.current = null;
     }
     if (wsRef.current) {
+      intentionalCloseRef.current = true;
+      greetedRef.current = false;
       wsRef.current.onclose = null;
       wsRef.current.onerror = null;
       wsRef.current.onmessage = null;
@@ -253,6 +315,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
+    currentAssistantMsgIdRef.current = null;
     setAudioLevel(0);
   }, []);
 
@@ -260,45 +323,60 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
   // Fallback speech synthesis
   // ---------------------------------------------------------------------------
   const fallbackSpeechSynthesis = useCallback(
-    (text: string) => {
-      if (!('speechSynthesis' in window) || isMutedRef.current) {
-        if (isComponentMounted.current) setVoiceState('idle');
-        return;
+  (text: string) => {
+    if (!('speechSynthesis' in window) || isMutedRef.current) {
+      if (isComponentMounted.current) setVoiceState('idle');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    assistantSpeakingStartTimeRef.current = Date.now();
+    if (isComponentMounted.current) setVoiceState('speaking');
+
+    // ---- NEW: tell the server the speaker is active ----
+    const report = (state: 'start' | 'end') => {
+      const socket = wsRef.current;
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'playback', state }));
       }
-      window.speechSynthesis.cancel();
-      assistantSpeakingStartTimeRef.current = Date.now();
-      if (isComponentMounted.current) setVoiceState('speaking');
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-US';
+    };
+    report('start');
+    // ---------------------------------------------------
 
-      let step = 0;
-      const wave = () => {
-        step += 0.2;
-        if (isComponentMounted.current) setAudioLevel(Math.round(40 + Math.sin(step) * 20));
-        animFrameRef.current = requestAnimationFrame(wave);
-      };
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-US';
+
+    let step = 0;
+    const wave = () => {
+      step += 0.2;
+      if (isComponentMounted.current) setAudioLevel(Math.round(40 + Math.sin(step) * 20));
       animFrameRef.current = requestAnimationFrame(wave);
+    };
+    animFrameRef.current = requestAnimationFrame(wave);
 
-      utterance.onend = () => {
-        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-        if (isComponentMounted.current) {
-          setAudioLevel(0);
-          setVoiceState('listening');
-        }
-      };
+    utterance.onend = () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      report('end');                                   // <-- NEW
+      if (isComponentMounted.current) {
+        currentAssistantMsgIdRef.current = null;
+        setAudioLevel(0);
+        setVoiceState('idle');
+      }
+    };
 
-      utterance.onerror = () => {
-        if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-        if (isComponentMounted.current) {
-          setAudioLevel(0);
-          setVoiceState('listening');
-        }
-      };
+    utterance.onerror = () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      report('end');                                   // <-- NEW
+      if (isComponentMounted.current) {
+        currentAssistantMsgIdRef.current = null;
+        setAudioLevel(0);
+        setVoiceState('idle');
+      }
+    };
 
-      window.speechSynthesis.speak(utterance);
-    },
-    [selectedLanguage]
-  );
+    window.speechSynthesis.speak(utterance);
+  },
+  [selectedLanguage]
+);
 
   // Play audio reply (base64 WAV or fallback)
   const playAudioReply = useCallback(
@@ -329,7 +407,8 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
             if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
             currentAudioRef.current = null;
             if (isComponentMounted.current) {
-              setAudioLevel(0);
+              currentAssistantMsgIdRef.current = null;
+    setAudioLevel(0);
               setVoiceState('idle');
             }
           };
@@ -358,7 +437,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
   // ---------------------------------------------------------------------------
   // Interrupt / Barge-in
   // ---------------------------------------------------------------------------
-  const interrupt = useCallback(() => {
+  const stopLocalPlayback = useCallback(() => {
     if (audioFallbackTimeoutRef.current) {
       clearTimeout(audioFallbackTimeoutRef.current);
       audioFallbackTimeoutRef.current = null;
@@ -366,6 +445,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
     pcmPlayerRef.current.stop();
     if (currentAudioRef.current) {
       currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
       currentAudioRef.current = null;
     }
     if ('speechSynthesis' in window) {
@@ -375,25 +455,57 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
     }
+    currentAssistantMsgIdRef.current = null;
     setAudioLevel(0);
+  }, []);
+
+  const interrupt = useCallback(() => {
+    stopLocalPlayback();
     setVoiceState('idle');
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       try {
-        wsRef.current.send(JSON.stringify({ type: 'interrupt' }));
+        wsRef.current.send(JSON.stringify({
+          type: 'interrupt',
+          turn_id: currentTurnIdRef.current || undefined,
+        }));
       } catch {}
     }
-  }, []);
+  }, [stopLocalPlayback]);
 
   // ---------------------------------------------------------------------------
   // WebSocket Connection & Real-Time PCM Mic Streaming (Pure WebSocket)
   // ---------------------------------------------------------------------------
   const connectWebSocket = useCallback(
     (existingSid?: string | null) => {
+      intentionalCloseRef.current = false;
+
+      // If already connected or actively connecting, do not tear down and reconnect
+      if (
+        wsRef.current &&
+        (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)
+      ) {
+        console.info('[Voice WS] Socket is already open or connecting; ignoring redundant connect request');
+        return;
+      }
+
       setErrorMessage(null);
       setVoiceState('connecting');
       setTransport('disconnected');
       const wsUrl = voiceApi.getWsUrl(existingSid, chatbotId);
       console.info('[Voice WS] Connecting', wsUrl);
+
+      // A previous socket (retry, reconnect, restart) must never stay open:
+      // two live sockets would each play the reply, sounding like repeats.
+      const previous = wsRef.current;
+      if (previous) {
+        previous.onopen = null;
+        previous.onmessage = null;
+        previous.onclose = null;
+        previous.onerror = null;
+        try { previous.close(1000); } catch { /* already closed */ }
+        wsRef.current = null;
+      }
+
       let ws: WebSocket;
       try {
         ws = new WebSocket(wsUrl);
@@ -409,9 +521,22 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
       let receivedAudioChunks = 0;
       let receivedAudioBytes = 0;
 
+      // Tell the server when the speaker is actually silent. Playback lags the
+      // network by hundreds of milliseconds, so without this the server would
+      // treat its own buffered voice as the user talking.
+      const reportPlayback = (state: 'start' | 'end') => {
+        const socket = wsRef.current;
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: 'playback', state }));
+        }
+      };
+      pcmPlayerRef.current.onPlaybackStart = () => reportPlayback('start');
+      pcmPlayerRef.current.onPlaybackEnd = () => reportPlayback('end');
+
       ws.onopen = () => {
         if (!isComponentMounted.current) return;
         console.info('[Voice WS] Connected; requesting welcome audio');
+        setErrorMessage(null);
         setTransport('websocket');
         setVoiceState('idle');
         pcmPlayerRef.current.init(24000);
@@ -419,8 +544,12 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
         // 1. Send language configuration
         ws.send(JSON.stringify({ type: 'config', language: selectedLanguage }));
 
-        // 2. Request initial welcome greeting directly over the WebSocket
-        ws.send(JSON.stringify({ type: 'greeting', text: welcomeMessage }));
+        // 2. Request initial welcome greeting directly over the WebSocket. A
+        // reconnect must not replay the greeting.
+        if (!greetedRef.current) {
+          greetedRef.current = true;
+          ws.send(JSON.stringify({ type: 'greeting', text: welcomeMessage }));
+        }
 
         // 3. Start streaming mic audio to WebSocket. The welcome is played
         // from the server's binary PCM frames, with text fallback on turn_end.
@@ -452,7 +581,11 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
             });
           }
           if (isMutedRef.current) return;
-          setVoiceState('speaking');
+          if (voiceStateRef.current !== 'speaking') {
+            assistantSpeakingStartTimeRef.current = Date.now();
+          }
+          // State is announced by the backend ("speaking"); the client only
+          // knows its own playback pipeline for mute/scheduling purposes.
           try {
             pcmPlayerRef.current.playChunk(event.data, (level) => {
               if (isComponentMounted.current) setAudioLevel(level);
@@ -478,28 +611,55 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
             case 'session_created':
               if (msg.session_id) {
                 setSessionId(msg.session_id);
+                sessionIdRef.current = msg.session_id;
               }
+              // Only reset reconnect attempts after the socket has remained stable for at least 3 seconds
+              if (stableConnectionTimeoutRef.current) {
+                clearTimeout(stableConnectionTimeoutRef.current);
+              }
+              stableConnectionTimeoutRef.current = window.setTimeout(() => {
+                reconnectAttemptsRef.current = 0;
+              }, 3000);
               break;
 
             case 'audio_config':
               pcmPlayerRef.current.init(msg.output_sample_rate || 24000);
               break;
 
-            case 'speech_start':
-              // Do NOT stop playback on speech_start! Only transition UI if assistant is not speaking.
-              if (
-                !isSpeakingRef.current &&
-                !pcmPlayerRef.current.isPlaying() &&
-                !(typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking)
-              ) {
-                setVoiceState('listening');
+            case 'duck_audio':
+              pcmPlayerRef.current.setVolume(0.65);
+              break;
+
+            case 'unduck_audio':
+              pcmPlayerRef.current.setVolume(1.0);
+              break;
+
+            case 'state': {
+              // Backend is the single source of truth for agent state.
+              if (typeof msg.state === 'string') {
+                const next: VoiceState | null =
+                  msg.state === 'thinking' || msg.state === 'processing' ? 'processing'
+                    : msg.state === 'idle' ||
+                      msg.state === 'listening' ||
+                      msg.state === 'speaking'
+                      ? msg.state
+                      : null;
+                if (next && next !== voiceStateRef.current) {
+                  console.info('[Voice WS] State ->', next);
+                  setVoiceState(next);
+                }
               }
+              break;
+            }
+
+            case 'speech_start':
+              // Visual hint only; the authoritative "listening" state comes
+              // from the server's state event.
               break;
 
             case 'interrupt':
-              console.info('[Voice WS] Dual-layer confirmed barge-in; stopping assistant playback');
-              interrupt();
-              setVoiceState('listening');
+              console.info('[Voice WS] Server confirmed barge-in; stopping local playback');
+              stopLocalPlayback();
               break;
 
             case 'transcript':
@@ -507,6 +667,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
                 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
                   window.speechSynthesis.cancel();
                 }
+                currentAssistantMsgIdRef.current = null;
                 setTranscripts((prev) => [
                   ...prev,
                   {
@@ -516,77 +677,112 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
                     timestamp: 'Just now',
                   },
                 ]);
-                setVoiceState('processing');
               } else if (msg.role === 'assistant') {
                 lastAssistantTextRef.current = msg.text;
                 currentTurnAudioChunksRef.current = 0;
 
-                setTranscripts((prev) => [
-                  ...prev,
-                  {
-                    id: `ws-bot-${Date.now()}`,
-                    role: 'assistant',
-                    text: msg.text,
-                    timestamp: 'Just now',
-                    isInterrupted: msg.interrupted,
-                  },
-                ]);
-                if (onTurnComplete) {
+                const currentId = currentAssistantMsgIdRef.current;
+                if (!currentId) {
+                  const newId = `ws-bot-${Date.now()}`;
+                  currentAssistantMsgIdRef.current = newId;
+                  setTranscripts((prev) => [
+                    ...prev,
+                    {
+                      id: newId,
+                      role: 'assistant',
+                      text: msg.text,
+                      timestamp: 'Just now',
+                      isInterrupted: msg.interrupted,
+                    },
+                  ]);
+                } else {
+                  setTranscripts((prev) =>
+                    prev.map((item) =>
+                      item.id === currentId
+                        ? {
+                            ...item,
+                            text: msg.text,
+                            isInterrupted: msg.interrupted ?? item.isInterrupted,
+                          }
+                        : item
+                    )
+                  );
+                }
+
+                if (onTurnComplete && !msg.partial) {
                   onTurnComplete('', msg.text);
                 }
 
-                // If server binary audio doesn't arrive within 250ms, play via speech synthesis
-                if (audioFallbackTimeoutRef.current) {
-                  clearTimeout(audioFallbackTimeoutRef.current);
+                if (!msg.partial) {
+                  currentAssistantMsgIdRef.current = null;
                 }
-                audioFallbackTimeoutRef.current = setTimeout(() => {
-                  if (currentTurnAudioChunksRef.current === 0 && isComponentMounted.current && !isMutedRef.current) {
-                    console.info('[Voice WS] Speaking assistant reply via speech synthesis');
-                    fallbackSpeechSynthesis(msg.text);
-                  }
-                }, 250);
               }
               break;
 
-            case 'audio_start':
-              if (audioFallbackTimeoutRef.current) {
-                clearTimeout(audioFallbackTimeoutRef.current);
-                audioFallbackTimeoutRef.current = null;
+            case 'end_call': {
+              console.info('[Voice WS] Server ended call:', msg.reason);
+              intentionalCloseRef.current = true;
+              stopLocalPlayback();
+              if (scriptNodeRef.current) {
+                scriptNodeRef.current.disconnect();
+                scriptNodeRef.current = null;
               }
-              setVoiceState('speaking');
+              if (micAudioCtxRef.current && micAudioCtxRef.current.state !== 'closed') {
+                micAudioCtxRef.current.close().catch(() => {});
+                micAudioCtxRef.current = null;
+              }
+              if (streamRef.current) {
+                streamRef.current.getTracks().forEach((track) => track.stop());
+                streamRef.current = null;
+              }
+              if (wsRef.current) {
+                try { wsRef.current.close(1000, 'call_ended'); } catch {}
+                wsRef.current = null;
+              }
+              setVoiceState('idle');
+              setTransport('disconnected');
+              setErrorMessage(null);
+              setAudioLevel(0);
+              const endNotice =
+                msg.reason === 'inactivity'
+                  ? '— Call disconnected due to inactivity —'
+                  : '— Call ended —';
+              setTranscripts((prev) => [
+                ...prev,
+                {
+                  id: `call-ended-${Date.now()}`,
+                  role: 'assistant',
+                  text: endNotice,
+                  timestamp: 'Just now',
+                },
+              ]);
+              break;
+            }
+
+            case 'audio_start':
               pcmPlayerRef.current.init(msg.sample_rate || 24000);
+              if (msg.turn_id) currentTurnIdRef.current = msg.turn_id;
               break;
 
             case 'turn_end':
-              if (currentTurnAudioChunksRef.current === 0 && lastAssistantTextRef.current) {
-                if (typeof window !== 'undefined' && 'speechSynthesis' in window && !window.speechSynthesis.speaking && !isMutedRef.current) {
-                  console.info('[Voice WS] turn_end: speaking reply via speech synthesis');
-                  fallbackSpeechSynthesis(lastAssistantTextRef.current);
-                }
-              } else if (isComponentMounted.current) {
-                setTimeout(() => {
-                  if (
-                    isComponentMounted.current &&
-                    voiceState !== 'listening' &&
-                    !(typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking)
-                  ) {
-                    setVoiceState('idle');
-                    setAudioLevel(0);
-                  }
-                }, 400);
-              }
+              currentAssistantMsgIdRef.current = null;
+              currentTurnIdRef.current = null;
+              if (isComponentMounted.current) setAudioLevel(0);
               break;
 
             case 'tts_fallback':
-              if (msg.text || lastAssistantTextRef.current) {
+              if (msg.text && !isMutedRef.current) {
                 console.info('[Voice WS] Server TTS fallback: speaking via client speech synthesis');
-                fallbackSpeechSynthesis(msg.text || lastAssistantTextRef.current);
+                fallbackSpeechSynthesis(msg.text);
               }
               break;
 
             case 'error':
-              if ((msg.code === 'tts_failed' || msg.code === 'tts_no_audio') && lastAssistantTextRef.current) {
-                console.info('[Voice WS] Server TTS reported error/no_audio, speaking via speech synthesis');
+              if (
+                (msg.code === 'tts_failed' || msg.code === 'tts_no_audio' || msg.code === 'greeting_tts_failed') &&
+                lastAssistantTextRef.current
+              ) {
+                console.info('[Voice WS] Server TTS reported fallback trigger, speaking via speech synthesis');
                 fallbackSpeechSynthesis(lastAssistantTextRef.current);
               } else if (msg.code === 'no_speech_detected') {
                 setVoiceState('idle');
@@ -606,7 +802,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
         console.error('[Voice WS] Connection error', e);
         if (isComponentMounted.current) {
           setTransport('disconnected');
-          setErrorMessage('Could not connect to the live voice server. Check the backend address and WebSocket route.');
+          setErrorMessage('Could not connect to live voice server. Please check backend address and port.');
           setVoiceState('error');
         }
       };
@@ -614,16 +810,71 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
       ws.onclose = (event) => {
         console.info('[Voice WS] Closed', { code: event.code, reason: event.reason });
         wsRef.current = null;
-        if (isComponentMounted.current) {
-          setTransport('disconnected');
-          setErrorMessage(`Voice WebSocket closed (${event.code})${event.reason ? `: ${event.reason}` : '.'}`);
-          setVoiceState('error');
+        if (stableConnectionTimeoutRef.current) {
+          clearTimeout(stableConnectionTimeoutRef.current);
+          stableConnectionTimeoutRef.current = null;
         }
+        if (!isComponentMounted.current) return;
+        setTransport('disconnected');
+
+        // Expired guest session: start a fresh one instead of failing.
+        if (event.code === 4408 && reconnectAttemptsRef.current < 3) {
+          reconnectAttemptsRef.current += 1;
+          console.info('[Voice WS] Session expired; opening a new guest session');
+          setSessionId(null);
+          sessionIdRef.current = null;
+          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = window.setTimeout(() => {
+            if (isComponentMounted.current && !intentionalCloseRef.current) {
+              connectWsRef.current?.(null);
+            }
+          }, 800);
+          return;
+        }
+
+        // Normal closure (1000) or intentional hangup: do not show error
+        if (event.code === 1000 || intentionalCloseRef.current) {
+          setVoiceState('idle');
+          setErrorMessage(null);
+          return;
+        }
+
+        // Fatal non-retryable server error codes:
+        // 1000 = normal, 1001 = going away, 1011 = server fatal exception (DB/Internal), 1013 = config missing
+        const MAX_RETRIES = 3;
+        const retryable = !intentionalCloseRef.current && ![1000, 1001, 1011, 1013].includes(event.code);
+        if (retryable && reconnectAttemptsRef.current < MAX_RETRIES) {
+          reconnectAttemptsRef.current += 1;
+          const attempt = reconnectAttemptsRef.current;
+          const delay = Math.round(1000 * Math.pow(1.5, attempt - 1));
+          console.info(`[Voice WS] Reconnecting in ${delay}ms (attempt ${attempt}/${MAX_RETRIES})`);
+          setVoiceState('connecting');
+          if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = window.setTimeout(() => {
+            if (isComponentMounted.current && !intentionalCloseRef.current) {
+              connectWsRef.current?.(sessionIdRef.current);
+            }
+          }, delay);
+          return;
+        }
+
+        const msgDetail =
+          event.code === 1011
+            ? 'Voice server encountered an internal error. Please check server logs and try again.'
+            : event.code === 1013
+            ? 'Voice agent configuration is missing or incomplete.'
+            : `Voice WebSocket disconnected (${event.code})${event.reason ? `: ${event.reason}` : '. Check if backend is running.'}`;
+        setErrorMessage(msgDetail);
+        setVoiceState('error');
       };
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedLanguage, welcomeMessage, interrupt, onTurnComplete, chatbotId]
+    [selectedLanguage, welcomeMessage, interrupt, stopLocalPlayback, onTurnComplete, chatbotId]
   );
+
+  useEffect(() => {
+    connectWsRef.current = connectWebSocket;
+  }, [connectWebSocket]);
 
   // ---------------------------------------------------------------------------
   // Continuous 16kHz PCM streaming from browser mic to WebSocket
@@ -632,6 +883,16 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
     try {
       let sentAudioChunks = 0;
       let sentAudioBytes = 0;
+      // A reconnect reuses the microphone stream but must not keep the previous
+      // processor (and its AudioContext) alive.
+      if (scriptNodeRef.current) {
+        scriptNodeRef.current.disconnect();
+        scriptNodeRef.current = null;
+      }
+      if (micAudioCtxRef.current && micAudioCtxRef.current.state !== 'closed') {
+        micAudioCtxRef.current.close().catch(() => {});
+        micAudioCtxRef.current = null;
+      }
       let stream = streamRef.current;
       if (!stream || !stream.active || !stream.getAudioTracks().some((t) => t.readyState === 'live')) {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -639,6 +900,17 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
+            // Chrome-specific stronger AEC
+            // @ts-ignore
+            googEchoCancellation: true,
+            // @ts-ignore
+            googExperimentalEchoCancellation: true,
+            // @ts-ignore
+            googAutoGainControl: true,
+            // @ts-ignore
+            googNoiseSuppression: true,
+            // @ts-ignore
+            googHighpassFilter: true,
           },
         });
         streamRef.current = stream;
@@ -665,13 +937,14 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
 
         const inputChannelData = e.inputBuffer.getChannelData(0);
 
-        // Measure audio level for visualizer
-        let sum = 0;
+        // Measure audio level for the visualizer
+        let sumSquares = 0;
         for (let i = 0; i < inputChannelData.length; i++) {
-          sum += Math.abs(inputChannelData[i]);
+          const sample = inputChannelData[i];
+          sumSquares += sample * sample;
         }
-        const avg = sum / inputChannelData.length;
-        const normalized = Math.min(100, Math.round(avg * 400));
+        const micRms = Math.sqrt(sumSquares / inputChannelData.length);
+        const normalized = Math.min(100, Math.round(micRms * 380));
         if (isComponentMounted.current) {
           setAudioLevel(normalized);
         }
@@ -679,34 +952,20 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
         // If user muted, don't send frames
         if (isMutedRef.current) return;
 
-        const isAssistantSpeaking =
-          isSpeakingRef.current ||
-          pcmPlayerRef.current.isPlaying() ||
-          (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking);
-
-        // Echo protection while assistant is speaking:
-        if (isAssistantSpeaking) {
-          const elapsed = Date.now() - assistantSpeakingStartTimeRef.current;
-          // 1. Initial 1.2s grace period: suppress speaker acoustic bleed from the first word
-          if (elapsed < 1200) {
-            return;
-          }
-          // 2. Discard low-energy speaker echo (require intentional user volume to barge in)
-          if (avg < 0.025) {
-            return;
-          }
-        }
-
         // Downsample input rate to 16,000 Hz Mono signed 16-bit PCM
         const pcm16 = downsampleTo16k(inputChannelData, audioCtx.sampleRate);
+        const pcmBuffer = pcm16.buffer as ArrayBuffer;
+
+        // Stream microphone audio during playback too; server-side VAD uses
+        // microphone levels and transcript echo filtering to detect barge-in.
         try {
-          ws.send(pcm16.buffer as ArrayBuffer);
+          ws.send(pcmBuffer);
           sentAudioChunks += 1;
-          sentAudioBytes += pcm16.byteLength;
+          sentAudioBytes += pcmBuffer.byteLength;
           if (sentAudioChunks === 1 || sentAudioChunks % 25 === 0) {
             console.info('[Voice WS] Sent microphone audio chunk', {
               chunks: sentAudioChunks,
-              chunkBytes: pcm16.byteLength,
+              chunkBytes: pcmBuffer.byteLength,
               totalBytes: sentAudioBytes,
               sampleRate: 16000,
             });
@@ -748,6 +1007,17 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
             echoCancellation: true,
             noiseSuppression: true,
             autoGainControl: true,
+            // Chrome-specific stronger AEC
+            // @ts-ignore
+            googEchoCancellation: true,
+            // @ts-ignore
+            googExperimentalEchoCancellation: true,
+            // @ts-ignore
+            googAutoGainControl: true,
+            // @ts-ignore
+            googNoiseSuppression: true,
+            // @ts-ignore
+            googHighpassFilter: true,
           },
         });
         streamRef.current = permStream;
@@ -833,6 +1103,17 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
+          // Chrome-specific stronger AEC
+          // @ts-ignore
+          googEchoCancellation: true,
+          // @ts-ignore
+          googExperimentalEchoCancellation: true,
+          // @ts-ignore
+          googAutoGainControl: true,
+          // @ts-ignore
+          googNoiseSuppression: true,
+          // @ts-ignore
+          googHighpassFilter: true,
         },
       });
       streamRef.current = stream;
@@ -952,6 +1233,29 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
     }
   }, [transport, stopListeningHttp]);
 
+  const endCall = useCallback(() => {
+    intentionalCloseRef.current = true;
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(JSON.stringify({ type: 'end_call' }));
+      } catch {}
+    }
+    cleanupAllAudio();
+    setVoiceState('idle');
+    setTransport('disconnected');
+    setErrorMessage(null);
+    setAudioLevel(0);
+    setTranscripts((prev) => [
+      ...prev,
+      {
+        id: `call-ended-${Date.now()}`,
+        role: 'assistant',
+        text: '— Call ended —',
+        timestamp: 'Just now',
+      },
+    ]);
+  }, [cleanupAllAudio]);
+
   const resetSession = useCallback(async () => {
     cleanupAllAudio();
     if (!preferWebSocket && sessionId) {
@@ -960,6 +1264,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
       } catch {}
     }
     autoInitDoneRef.current = false;
+    greetedRef.current = false;
     setSessionId(null);
     setTranscripts([
       {
@@ -992,6 +1297,7 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
     stopListening,
     interrupt,
     resetSession,
+    endCall,
   };
 };
 

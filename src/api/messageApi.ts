@@ -11,6 +11,11 @@ export const messageApi = {
    * Posts a chat message to process through the backend AI model
    */
   sendMessage: async (payload: SendMessagePayload) => {
+    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+    const isPreview = typeof window !== 'undefined' && window.location.pathname.includes('/preview/');
+    if (payload.chatbot_id && (!token || isPreview)) {
+      return apiClient.post(`/chatbot/public/${payload.chatbot_id}/chat`, payload);
+    }
     return apiClient.post('/message', payload);
   },
 
@@ -23,7 +28,14 @@ export const messageApi = {
   ) => {
     const token = localStorage.getItem('access_token') || localStorage.getItem('token');
     const apiBase = BASE_URL;
-    const response = await fetch(`${apiBase}/message/stream`, {
+
+    // In dedicated preview or when unauthenticated with chatbot_id, use public stream endpoint
+    const isPreview = typeof window !== 'undefined' && window.location.pathname.includes('/preview/');
+    let url = (payload.chatbot_id && (!token || isPreview))
+      ? `${apiBase}/chatbot/public/${payload.chatbot_id}/chat/stream`
+      : `${apiBase}/message/stream`;
+
+    let response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,6 +43,19 @@ export const messageApi = {
       },
       body: JSON.stringify(payload)
     });
+
+    // If /message/stream returns 401 Unauthorized and we have a chatbot_id, retry via public streaming
+    if (response.status === 401 && payload.chatbot_id) {
+      console.warn('[ChatStream] /message/stream returned 401; retrying with public chatbot stream endpoint');
+      url = `${apiBase}/chatbot/public/${payload.chatbot_id}/chat/stream`;
+      response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
