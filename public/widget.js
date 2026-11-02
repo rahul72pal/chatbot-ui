@@ -105,14 +105,14 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
 
-    html = html.replace(/^### (.*$)/gim, '<h3 style="font-weight:700;font-size:14px;margin:8px 0 4px 0;color:#0f172a;">$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2 style="font-weight:700;font-size:15px;margin:10px 0 4px 0;color:#0f172a;">$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1 style="font-weight:700;font-size:16px;margin:12px 0 6px 0;color:#0f172a;">$1</h1>');
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight:700;color:#0f172a;">$1</strong>');
-    html = html.replace(/__(.*?)__/g, '<strong style="font-weight:700;color:#0f172a;">$1</strong>');
-    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    html = html.replace(/`(.*?)`/g, '<code style="background:rgba(15,23,42,0.06);padding:2px 5px;border-radius:4px;font-family:monospace;font-size:12px;color:#334155;">$1</code>');
-    html = html.replace(/^\s*[\*\-]\s+(.*$)/gim, '<div style="margin-left:14px;position:relative;padding-left:10px;margin-bottom:3px;"><span style="position:absolute;left:0;">•</span>$1</div>');
+    html = html.replace(/^### (.*$)/gim, '<h3 style="font-weight:700;font-size:14px;margin:8px 0 4px 0;color:#FFFFFF;">$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2 style="font-weight:700;font-size:15px;margin:10px 0 4px 0;color:#FFFFFF;">$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1 style="font-weight:700;font-size:16px;margin:12px 0 6px 0;color:#FFFFFF;">$1</h1>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight:700;color:#FFFFFF;">$1</strong>');
+    html = html.replace(/__(.*?)__/g, '<strong style="font-weight:700;color:#FFFFFF;">$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em style="font-style:italic;color:#E0E7FF;">$1</em>');
+    html = html.replace(/`(.*?)`/g, '<code style="background:rgba(255,255,255,0.12);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:12px;color:#A5B4FC;border:1px solid rgba(255,255,255,0.1);">$1</code>');
+    html = html.replace(/^\s*[\*\-]\s+(.*$)/gim, '<div style="margin-left:14px;position:relative;padding-left:10px;margin-bottom:3px;color:#F3F6FF;"><span style="position:absolute;left:0;color:#818CF8;">•</span>$1</div>');
     html = html.replace(/\n\n/g, '<div style="margin-bottom:8px;"></div>');
     html = html.replace(/\n/g, '<br/>');
 
