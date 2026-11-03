@@ -8,12 +8,6 @@ import {
   MessageCircle, 
   Files, 
   ArrowRight, 
-  Zap, 
-  BarChart2, 
-  TrendingUp, 
-  User, 
-  Clock, 
-  ShieldCheck, 
   ExternalLink, 
   Edit2, 
   Trash2, 
@@ -235,10 +229,8 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Split Area: Left (Chatbot List) + Right (Recent Activity & Quick Stats) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left Column: Your AI Chatbots Table Card */}
-        <div className="lg:col-span-2 bg-[#0D1730] border border-[#1C2C4B] rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between">
+      {/* Your AI Chatbots Table Card (Full Width) */}
+      <div className="w-full bg-[#0D1730] border border-[#1C2C4B] rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between">
           <div>
             {/* Table Header Controls */}
             <div className="p-5 sm:p-6 border-b border-[#1C2C4B] flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
@@ -282,7 +274,7 @@ export const Dashboard: React.FC = () => {
 
             {/* Desktop & Tablet Table (>= 640px) */}
             <div className="hidden sm:block overflow-x-auto custom-scrollbar">
-              <table className="w-full text-left border-collapse min-w-[720px]">
+              <table className="w-full text-left border-collapse min-w-[100%]">
                 <thead>
                   <tr className="border-b border-[#1C2C4B] bg-[#091121] text-[#71829F] text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">
                     <th className="py-3.5 px-4 font-bold w-12 text-center">#</th>
@@ -500,143 +492,6 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Right Column: Recent Activity & Quick Stats */}
-        <div className="flex flex-col gap-5">
-          {/* Recent Activity Card matching reference */}
-          <div className="bg-[#0D1730] border border-[#1C2C4B] rounded-2xl p-5 shadow-xl">
-            <div className="flex items-center justify-between pb-4 border-b border-[#1C2C4B]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <h3 className="font-display text-sm font-bold text-[#F3F6FF]">Recent Activity</h3>
-              </div>
-              <button 
-                onClick={() => navigate('/conversations')}
-                className="text-[11px] text-[#71829F] hover:text-indigo-400 transition-colors flex items-center gap-1 font-medium"
-              >
-                View all <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-
-            <div className="divide-y divide-[#1C2C4B]/60 text-xs">
-              {/* Item 1 */}
-              <div className="py-3.5 flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#10D6A0]/15 border border-[#10D6A0]/30 text-[#10D6A0] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Plus className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#F3F6FF] truncate text-xs">New chatbot created</p>
-                  <p className="text-[11px] text-[#71829F] truncate">Travel Assistant</p>
-                </div>
-                <span className="text-[10px] text-[#71829F] whitespace-nowrap">2h ago</span>
-              </div>
-
-              {/* Item 2 */}
-              <div className="py-3.5 flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#7C3AED]/15 border border-[#7C3AED]/30 text-[#A855F7] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Files className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#F3F6FF] truncate text-xs">Knowledge base updated</p>
-                  <p className="text-[11px] text-[#71829F] truncate">Product Docs (5 files)</p>
-                </div>
-                <span className="text-[10px] text-[#71829F] whitespace-nowrap">5h ago</span>
-              </div>
-
-              {/* Item 3 */}
-              <div className="py-3.5 flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#2563EB]/15 border border-[#2563EB]/30 text-[#38BDF8] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#F3F6FF] truncate text-xs">Conversation received</p>
-                  <p className="text-[11px] text-[#71829F] truncate">User: "How does pricing work?"</p>
-                </div>
-                <span className="text-[10px] text-[#71829F] whitespace-nowrap">7h ago</span>
-              </div>
-
-              {/* Item 4 */}
-              <div className="py-3.5 flex items-start gap-3">
-                <div className="w-7 h-7 rounded-full bg-[#22D3EE]/15 border border-[#22D3EE]/30 text-[#22D3EE] flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Files className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-[#F3F6FF] truncate text-xs">New document uploaded</p>
-                  <p className="text-[11px] text-[#71829F] truncate">faq.pdf (2.4 MB)</p>
-                </div>
-                <span className="text-[10px] text-[#71829F] whitespace-nowrap">1d ago</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats Card matching reference */}
-          <div className="bg-[#0D1730] border border-[#1C2C4B] rounded-2xl p-5 shadow-xl">
-            <div className="flex items-center justify-between pb-4 border-b border-[#1C2C4B]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 flex items-center justify-center">
-                  <BarChart2 className="w-4 h-4" />
-                </div>
-                <h3 className="font-display text-sm font-bold text-[#F3F6FF]">Quick Stats</h3>
-              </div>
-              <div className="flex items-center gap-1 px-2.5 py-1 bg-[#101D39] border border-[#1C2C4B] rounded-lg text-[11px] text-[#A3B3CF]">
-                <span>Last 7 days</span>
-                <ChevronDown className="w-3 h-3 text-[#71829F]" />
-              </div>
-            </div>
-
-            {/* 2x2 Stats Grid matching reference */}
-            <div className="grid grid-cols-2 gap-3 pt-4">
-              {/* Stat 1 */}
-              <div className="bg-[#101D39] border border-[#1C2C4B] rounded-xl p-3.5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Total Chats</p>
-                  <p className="font-display text-lg font-bold text-[#F3F6FF] mt-0.5">{conversationsCount}</p>
-                </div>
-                <div className="text-indigo-400">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Stat 2 */}
-              <div className="bg-[#101D39] border border-[#1C2C4B] rounded-xl p-3.5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Total Users</p>
-                  <p className="font-display text-lg font-bold text-[#F3F6FF] mt-0.5">
-                    {conversationsCount > 0 ? conversationsCount : 0}
-                  </p>
-                </div>
-                <div className="text-cyan-400">
-                  <User className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Stat 3 */}
-              <div className="bg-[#101D39] border border-[#1C2C4B] rounded-xl p-3.5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Avg. Response Time</p>
-                  <p className="font-display text-lg font-bold text-[#F3F6FF] mt-0.5">0ms</p>
-                </div>
-                <div className="text-[#10D6A0]">
-                  <Clock className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Stat 4 */}
-              <div className="bg-[#101D39] border border-[#1C2C4B] rounded-xl p-3.5 flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-[#71829F] uppercase tracking-wider">Uptime</p>
-                  <p className="font-display text-lg font-bold text-[#F3F6FF] mt-0.5">100%</p>
-                </div>
-                <div className="text-[#10D6A0]">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

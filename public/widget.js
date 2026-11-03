@@ -136,10 +136,7 @@
     if (config.bubble_style === 'pill') borderRadius = '50%';
     if (config.bubble_style === 'square') borderRadius = '6px';
 
-    return '<div id="ycb-launcher-group" style="display: flex; align-items: center; gap: 10px;">' +
-      '<button id="ycb-voice-launcher" style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5, #9333ea, #06b6d4); color: #ffffff; border: 1px solid rgba(255,255,255,0.25); outline: none; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.4); display: flex; align-items: center; justify-content: center; transition: transform 0.2s;" title="Open Voice Agent">' +
-        Icons.mic() +
-      '</button>' +
+    return '<div id="ycb-launcher-group">' +
       '<button id="ycb-launcher" style="width: 56px; height: 56px; border-radius: ' + borderRadius + '; background-color: ' + config.theme_color + '; color: #ffffff; border: none; outline: none; cursor: pointer; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); display: flex; align-items: center; justify-content: center; transition: transform 0.2s;" title="Open Chat">' +
         Icons.message() +
       '</button>' +
@@ -284,7 +281,9 @@
       voiceTranscript = document.getElementById('ycb-voice-transcript');
 
       launcherBtn.addEventListener('click', function () { openWidget('chat'); });
-      voiceLauncherBtn.addEventListener('click', function () { openWidget('voice'); });
+      if (voiceLauncherBtn) {
+        voiceLauncherBtn.addEventListener('click', function () { openWidget('voice'); });
+      }
       closeBtn.addEventListener('click', function () { closeWidget(); });
       refreshBtn.addEventListener('click', function () { resetMessages(); });
       toggleModeBtn.addEventListener('click', function () {
@@ -624,21 +623,33 @@
                 if (m.text) {
                   speakFallback(m.text);
                 }
+              } else if (m.type === 'status') {
+                if (m.message) {
+                  if (voiceStatusSub) voiceStatusSub.innerText = m.message;
+                  if (voiceStatusTitle) voiceStatusTitle.innerText = 'Searching...';
+                  if (voiceTranscript) voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.message;
+                }
               } else if (m.type === 'transcript') {
                 if (m.role === 'user') {
                   currentAssistantMsgBubble = null;
                   voiceTranscript.innerHTML = '<strong>You:</strong> ' + m.text;
                   updateVoiceUI('processing');
                 } else {
-                  voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
-                  if (!currentAssistantMsgBubble) {
-                    currentAssistantMsgBubble = appendMessage('assistant', m.text);
+                  if (m.is_status) {
+                    if (voiceStatusSub) voiceStatusSub.innerText = m.text;
+                    if (voiceStatusTitle) voiceStatusTitle.innerText = 'Searching...';
+                    voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
                   } else {
-                    currentAssistantMsgBubble.innerHTML = renderMarkdown(m.text);
-                    messagesEl.scrollTop = messagesEl.scrollHeight;
-                  }
-                  if (!m.partial) {
-                    currentAssistantMsgBubble = null;
+                    voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
+                    if (!currentAssistantMsgBubble) {
+                      currentAssistantMsgBubble = appendMessage('assistant', m.text);
+                    } else {
+                      currentAssistantMsgBubble.innerHTML = renderMarkdown(m.text);
+                      messagesEl.scrollTop = messagesEl.scrollHeight;
+                    }
+                    if (!m.partial) {
+                      currentAssistantMsgBubble = null;
+                    }
                   }
                 }
               } else if (m.type === 'interrupt') {
@@ -991,7 +1002,7 @@
           var iconHtml = '⚡ ';
           if (toolName === 'web_search' || (statusText && statusText.toLowerCase().indexOf('web') !== -1)) {
             iconHtml = '🔍 ';
-          } else if (toolName === 'document_search' || (statusText && statusText.toLowerCase().indexOf('knowledge') !== -1)) {
+          } else if (toolName === 'document_search' || (statusText && (statusText.toLowerCase().indexOf('knowledge') !== -1 || statusText.toLowerCase().indexOf('document') !== -1 || statusText.toLowerCase().indexOf('uploaded') !== -1))) {
             iconHtml = '📚 ';
           }
           bubble.innerHTML = iconHtml + '<span>' + (statusText || 'Thinking...') + '</span>';

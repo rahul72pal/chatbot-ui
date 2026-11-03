@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Sparkles, Mic } from 'lucide-react';
+import { MessageSquare, Sparkles } from 'lucide-react';
 import ChatWindow from './ChatWindow';
 
 interface ChatPreviewProps {
@@ -90,23 +90,14 @@ export const ChatPreview: React.FC<ChatPreviewProps> = ({
             />
           </div>
         ) : (
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => { setPreviewMode('voice'); setIsOpen(true); }}
-              className="w-12 h-12 rounded-full shadow-lg bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 flex items-center justify-center cursor-pointer transition-transform hover:scale-110 duration-150 text-white z-20 border border-white/20"
-              title="Open Voice Agent"
-            >
-              <Mic className="w-5 h-5 text-white animate-pulse" />
-            </button>
-            <button 
-              onClick={() => { setPreviewMode('chat'); setIsOpen(true); }}
-              className={getLauncherClasses()}
-              style={{ backgroundColor: themeColor }}
-              title="Open Chat Assistant"
-            >
-              <MessageSquare className="w-6 h-6" />
-            </button>
-          </div>
+          <button 
+            onClick={() => { setPreviewMode('chat'); setIsOpen(true); }}
+            className={getLauncherClasses()}
+            style={{ backgroundColor: themeColor }}
+            title="Open Chat Assistant"
+          >
+            <MessageSquare className="w-6 h-6" />
+          </button>
         )}
       </div>
     </div>

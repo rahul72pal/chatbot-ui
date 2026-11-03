@@ -10,8 +10,7 @@ import {
   Zap, 
   Headphones, 
   HelpCircle, 
-  ShoppingBag,
-  Mic
+  ShoppingBag
 } from 'lucide-react';
 import { chatbotApi } from '../api';
 import ChatWindow from '../components/ChatWindow';
@@ -264,31 +263,14 @@ export const DedicatedPreview: React.FC = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => { setPreviewMode('voice'); setIsOpen(true); }}
-                className="w-12 h-12 shadow-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-500 rounded-full flex items-center justify-center cursor-pointer transition-all hover:scale-110 active:scale-95 duration-200 text-white z-40 border border-white/20 relative group"
-                title="Talk with Voice Agent"
-              >
-                <Mic className="w-5 h-5 text-white animate-pulse" />
-                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border border-[#091121]"></span>
-                </span>
-                <span className="absolute bottom-14 opacity-0 group-hover:opacity-100 transition-opacity bg-[#091121] text-white text-[10px] font-bold px-2 py-1 rounded-md border border-[#1C2C4B] whitespace-nowrap pointer-events-none shadow-lg">
-                  Voice Agent
-                </span>
-              </button>
-
-              <button
-                onClick={() => { setPreviewMode('chat'); setIsOpen(true); }}
-                className={getLauncherClasses()}
-                style={{ backgroundColor: themeColor }}
-                title="Open Chat Assistant"
-              >
-                {getAvatarIcon()}
-              </button>
-            </div>
+            <button
+              onClick={() => { setPreviewMode('chat'); setIsOpen(true); }}
+              className={getLauncherClasses()}
+              style={{ backgroundColor: themeColor }}
+              title="Open Chat Assistant"
+            >
+              {getAvatarIcon()}
+            </button>
           </div>
         )}
       </div>

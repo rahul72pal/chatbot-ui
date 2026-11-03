@@ -662,6 +662,31 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
               stopLocalPlayback();
               break;
 
+            case 'status':
+              if (msg.message) {
+                const currentId = currentAssistantMsgIdRef.current;
+                if (!currentId) {
+                  const newId = `ws-status-${Date.now()}`;
+                  currentAssistantMsgIdRef.current = newId;
+                  setTranscripts((prev) => [
+                    ...prev,
+                    {
+                      id: newId,
+                      role: 'assistant',
+                      text: msg.message,
+                      timestamp: 'Just now',
+                    },
+                  ]);
+                } else {
+                  setTranscripts((prev) =>
+                    prev.map((item) =>
+                      item.id === currentId ? { ...item, text: msg.message } : item
+                    )
+                  );
+                }
+              }
+              break;
+
             case 'transcript':
               if (msg.role === 'user') {
                 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {

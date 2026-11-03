@@ -13,7 +13,12 @@ export const TypingIndicator: React.FC<TypingIndicatorProps> = ({ status, active
     if (activeTool === 'web_search' || status.toLowerCase().includes('web')) {
       return <Search className="w-3.5 h-3.5 animate-spin text-indigo-400" />;
     }
-    if (activeTool === 'document_search' || status.toLowerCase().includes('knowledge')) {
+    if (
+      activeTool === 'document_search' ||
+      status.toLowerCase().includes('knowledge') ||
+      status.toLowerCase().includes('document') ||
+      status.toLowerCase().includes('uploaded')
+    ) {
       return <Database className="w-3.5 h-3.5 animate-spin text-indigo-400" />;
     }
     return <Sparkles className="w-3.5 h-3.5 animate-spin text-indigo-400" />;
