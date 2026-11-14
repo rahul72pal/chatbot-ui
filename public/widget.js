@@ -497,7 +497,9 @@
         var src = ctx.createBufferSource();
         src.buffer = audioBuf;
         src.connect(this.gainNode || ctx.destination);
-        var start = Math.max(ctx.currentTime, this.nextTime);
+        var isFirst = this.activeSources.length === 0;
+        // Jitter buffer: 60ms initial cushion on first chunk to prevent network jitter underruns
+        var start = isFirst ? (ctx.currentTime + 0.06) : Math.max(ctx.currentTime, this.nextTime);
         src.start(start);
         this.nextTime = start + audioBuf.duration;
 

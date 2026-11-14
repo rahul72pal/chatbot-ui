@@ -136,9 +136,9 @@ class PcmStreamPlayer {
     source.connect(this.gainNode || ctx.destination);
 
     const now = ctx.currentTime;
-    // Seamless timeline queue scheduling: starts immediately if timeline is in the past,
-    // otherwise schedules precisely at nextStartTime with zero gaps between chunks.
-    const startTime = Math.max(now, this.nextStartTime);
+    const isFirstChunk = this.activeSources.length === 0;
+    // Jitter buffer: add 60ms initial cushion on first chunk so network packet jitter never causes audio underruns
+    const startTime = isFirstChunk ? (now + 0.06) : Math.max(now, this.nextStartTime);
     source.start(startTime);
     this.nextStartTime = startTime + buffer.duration;
 
