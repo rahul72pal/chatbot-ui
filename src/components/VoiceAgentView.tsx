@@ -137,10 +137,10 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
                 {voiceState === 'error'
                   ? 'WS Offline'
                   : voiceState === 'connecting'
-                  ? 'WS Connecting'
+                  ? 'Connecting'
                   : transport === 'websocket'
-                  ? 'Live WS'
-                  : 'Voice'}
+                  ? 'Pipecat Live'
+                  : 'Pipecat'}
               </span>
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">

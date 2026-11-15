@@ -708,18 +708,25 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
 
                 const currentId = currentAssistantMsgIdRef.current;
                 if (!currentId) {
-                  const newId = `ws-bot-${Date.now()}`;
-                  currentAssistantMsgIdRef.current = newId;
-                  setTranscripts((prev) => [
-                    ...prev,
-                    {
-                      id: newId,
-                      role: 'assistant',
-                      text: msg.text,
-                      timestamp: 'Just now',
-                      isInterrupted: msg.interrupted,
-                    },
-                  ]);
+                  setTranscripts((prev) => {
+                    // Prevent duplicate consecutive assistant messages (e.g. welcome greeting echoed by server)
+                    const last = prev[prev.length - 1];
+                    if (last && last.role === 'assistant' && last.text.trim() === msg.text.trim()) {
+                      return prev;
+                    }
+                    const newId = `ws-bot-${Date.now()}`;
+                    currentAssistantMsgIdRef.current = newId;
+                    return [
+                      ...prev,
+                      {
+                        id: newId,
+                        role: 'assistant',
+                        text: msg.text,
+                        timestamp: 'Just now',
+                        isInterrupted: msg.interrupted,
+                      },
+                    ];
+                  });
                 } else {
                   setTranscripts((prev) =>
                     prev.map((item) =>
@@ -924,14 +931,14 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
-            autoGainControl: true,
+            autoGainControl: false,
             // Chrome-specific stronger AEC
             // @ts-ignore
             googEchoCancellation: true,
             // @ts-ignore
             googExperimentalEchoCancellation: true,
             // @ts-ignore
-            googAutoGainControl: true,
+            googAutoGainControl: false,
             // @ts-ignore
             googNoiseSuppression: true,
             // @ts-ignore
@@ -1031,14 +1038,14 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
-            autoGainControl: true,
+            autoGainControl: false,
             // Chrome-specific stronger AEC
             // @ts-ignore
             googEchoCancellation: true,
             // @ts-ignore
             googExperimentalEchoCancellation: true,
             // @ts-ignore
-            googAutoGainControl: true,
+            googAutoGainControl: false,
             // @ts-ignore
             googNoiseSuppression: true,
             // @ts-ignore
@@ -1127,14 +1134,14 @@ export const useVoiceAgent = (options: UseVoiceAgentOptions = {}) => {
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true,
+          autoGainControl: false,
           // Chrome-specific stronger AEC
           // @ts-ignore
           googEchoCancellation: true,
           // @ts-ignore
           googExperimentalEchoCancellation: true,
           // @ts-ignore
-          googAutoGainControl: true,
+          googAutoGainControl: false,
           // @ts-ignore
           googNoiseSuppression: true,
           // @ts-ignore

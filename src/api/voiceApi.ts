@@ -154,6 +154,7 @@ export const voiceApi = {
     }
 
     const params = new URLSearchParams();
+    params.set('engine', 'pipecat');
     if (sessionId) params.set('session_id', sessionId);
     if (chatbotId) params.set('chatbot_id', chatbotId);
     const queryString = params.toString();

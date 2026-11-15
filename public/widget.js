@@ -363,7 +363,7 @@
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          autoGainControl: false
         }
       })
       .then(function (stream) {
@@ -424,7 +424,7 @@
         chatView.style.display = 'none';
         voiceView.style.display = 'flex';
         modeBtnText.innerText = 'Chat';
-        headerSub.innerText = 'Voice Agent (WebSocket)';
+        headerSub.innerText = 'Pipecat Voice Agent';
         initVoiceAgentWs();
       } else {
         voiceView.style.display = 'none';
@@ -539,7 +539,7 @@
       pcmPlayer.init();
       var wsProto = apiBase.indexOf('https') === 0 ? 'wss' : 'ws';
       var wsHost = apiBase.replace(/^https?:\/\//, '').split('/')[0];
-      var wsUrl = wsProto + '://' + wsHost + '/ws/voice?chatbot_id=' + encodeURIComponent(botId);
+      var wsUrl = wsProto + '://' + wsHost + '/ws/voice?engine=pipecat&chatbot_id=' + encodeURIComponent(botId);
       if (voiceSessionId) {
         wsUrl += '&session_id=' + encodeURIComponent(voiceSessionId);
       }
@@ -736,7 +736,7 @@
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
-            autoGainControl: true
+            autoGainControl: false
           }
         })
           .then(function (stream) {
