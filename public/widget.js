@@ -625,6 +625,10 @@
                 if (m.text) {
                   speakFallback(m.text);
                 }
+              } else if (m.type === 'ping') {
+                if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
+                  try { voiceWs.send(JSON.stringify({ type: 'pong' })); } catch (e) {}
+                }
               } else if (m.type === 'status') {
                 if (m.message) {
                   if (voiceStatusSub) voiceStatusSub.innerText = m.message;
@@ -642,6 +646,8 @@
                     if (voiceStatusTitle) voiceStatusTitle.innerText = 'Searching...';
                     voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
                   } else {
+                    if (voiceStatusTitle) voiceStatusTitle.innerText = 'Speaking...';
+                    if (voiceStatusSub) voiceStatusSub.innerText = 'Delivering response...';
                     voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
                     if (!currentAssistantMsgBubble) {
                       currentAssistantMsgBubble = appendMessage('assistant', m.text);
@@ -664,7 +670,7 @@
                 if (!window.speechSynthesis || !window.speechSynthesis.speaking) {
                   updateVoiceUI('idle');
                 }
-              } else if (m.type === 'end_call') {
+              } else if (m.type === 'end_call' || m.type === 'call_ended') {
                 var endNotice = m.reason === 'inactivity' ? '— Call disconnected due to inactivity —' : '— Call ended —';
                 voiceTranscript.innerHTML = '<em>' + endNotice + '</em>';
                 stopAudioPlayback();
@@ -689,7 +695,11 @@
           stopVoiceStreaming();
           voiceWs = null;
           if (isOpen && currentMode === 'voice') {
-            updateVoiceUI('error');
+            if (ev && ev.code && ev.code !== 1000) {
+              updateVoiceUI('error');
+            } else {
+              updateVoiceUI('idle');
+            }
           }
         };
       } catch (e) {
