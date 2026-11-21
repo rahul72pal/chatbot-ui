@@ -79,16 +79,25 @@
       return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
     },
     mic: function () {
-      return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
+      return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
     },
     square: function () {
-      return '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>';
+      return '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect width="16" height="16" x="4" y="4" rx="3"/></svg>';
+    },
+    volume: function () {
+      return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/></svg>';
+    },
+    sparkles: function () {
+      return '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>';
+    },
+    phoneOff: function () {
+      return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="22" x2="2" y1="2" y2="22"/></svg>';
     },
     close: function () {
       return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
     },
     refresh: function () {
-      return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>';
+      return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>';
     },
     send: function () {
       return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
@@ -120,8 +129,114 @@
   }
 
   // ---------------------------------------------------------------------------
-  // 4. UI Builders
+  // 4. UI Builders & Dynamic Animation Styles
   // ---------------------------------------------------------------------------
+  function ensureOrbStyles() {
+    if (document.getElementById('ycb-voice-orb-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'ycb-voice-orb-styles';
+    style.textContent =
+      '.voice-orb-wrap {' +
+        'width: var(--orb-size, 130px);' +
+        'height: var(--orb-size, 130px);' +
+        'position: relative;' +
+        'display: flex;' +
+        'align-items: center;' +
+        'justify-content: center;' +
+        'cursor: pointer;' +
+        'outline: none;' +
+        'transform: scale(var(--orb-reactive, 1));' +
+        'will-change: transform;' +
+        'transition: transform 0.08s ease-out;' +
+      '}' +
+      '.voice-orb {' +
+        'position: absolute;' +
+        'inset: 0;' +
+        'border-radius: 50%;' +
+        'animation: orb-breathe 2.8s ease-in-out infinite;' +
+        'will-change: transform;' +
+      '}' +
+      '.voice-orb[data-state="idle"]        { animation: orb-breathe 3.2s ease-in-out infinite; }' +
+      '.voice-orb[data-state="connecting"]  { animation: orb-breathe 1.6s ease-in-out infinite; }' +
+      '.voice-orb[data-state="listening"]   { animation: orb-swell 1.15s ease-in-out infinite; }' +
+      '.voice-orb[data-state="processing"]  { animation: orb-breathe 2.4s ease-in-out infinite; }' +
+      '.voice-orb[data-state="speaking"]    { animation: orb-swell 1.7s ease-in-out infinite; }' +
+      '.voice-orb[data-state="error"]       { animation: orb-throb 0.9s ease-in-out infinite; }' +
+      '@keyframes orb-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }' +
+      '@keyframes orb-swell   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.18)} }' +
+      '@keyframes orb-throb   { 0%,100%{transform:scale(0.97)} 50%{transform:scale(1.08)} }' +
+      '.voice-orb__glow {' +
+        'position: absolute;' +
+        'inset: -16%;' +
+        'border-radius: 50%;' +
+        'background: radial-gradient(circle, var(--orb-color-main, #0A84FF), transparent 70%);' +
+        'filter: blur(24px);' +
+        'opacity: .5;' +
+        'animation: orb-glow-pulse 4s ease-in-out infinite;' +
+      '}' +
+      '@keyframes orb-glow-pulse { 0%,100%{opacity:.4} 50%{opacity:.65} }' +
+      '.voice-orb__surface {' +
+        'position: absolute;' +
+        'inset: 0;' +
+        'border-radius: 50%;' +
+        'overflow: hidden;' +
+        'background: var(--orb-color-light, #F4FBFF);' +
+        'box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 10px 34px rgba(0,0,0,.5);' +
+      '}' +
+      '.voice-orb__blob {' +
+        'position: absolute;' +
+        'border-radius: 50%;' +
+        'filter: blur(18px);' +
+        'will-change: transform;' +
+      '}' +
+      '.voice-orb__blob--main {' +
+        'width: 170%;' +
+        'height: 170%;' +
+        'left: -35%;' +
+        'top: 30%;' +
+        'background: radial-gradient(circle at 50% 30%, var(--orb-color-main, #0A84FF) 0%, var(--orb-color-main, #0A84FF) 46%, transparent 68%);' +
+        'animation: orb-blob-main 7s ease-in-out infinite;' +
+      '}' +
+      '.voice-orb__blob--swirl {' +
+        'width: 80%;' +
+        'height: 80%;' +
+        'left: 40%;' +
+        'top: 18%;' +
+        'opacity: .75;' +
+        'background: radial-gradient(circle, var(--orb-color-main, #0A84FF) 0%, transparent 65%);' +
+        'animation: orb-blob-swirl 10s linear infinite;' +
+      '}' +
+      '.voice-orb__blob--light {' +
+        'width: 130%;' +
+        'height: 130%;' +
+        'left: -20%;' +
+        'top: -52%;' +
+        'background: radial-gradient(circle at 50% 60%, var(--orb-color-light, #F4FBFF) 0%, rgba(255,255,255,.55) 55%, transparent 75%);' +
+        'animation: orb-blob-light 9s ease-in-out infinite;' +
+      '}' +
+      '.voice-orb__sheen {' +
+        'position: absolute;' +
+        'inset: 0;' +
+        'border-radius: 50%;' +
+        'background: radial-gradient(circle at 30% 22%, rgba(255,255,255,.35), transparent 45%);' +
+        'pointer-events: none;' +
+      '}' +
+      '@keyframes orb-blob-main { 0%,100%{transform:translate(-4%,0) scale(1)} 33%{transform:translate(3%,3%) scale(1.06) rotate(2deg)} 66%{transform:translate(-2%,-3%) scale(.97) rotate(-2deg)} }' +
+      '@keyframes orb-blob-swirl { from{transform:rotate(0) translateX(0)} 25%{transform:rotate(90deg) translateX(6%)} 50%{transform:rotate(180deg) translateX(0)} 75%{transform:rotate(270deg) translateX(-6%)} to{transform:rotate(360deg) translateX(0)} }' +
+      '@keyframes orb-blob-light { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(5%,7%) scale(1.05)} 66%{transform:translate(-6%,2%) scale(.96)} }' +
+      '.voice-orb__content {' +
+        'position: absolute;' +
+        'inset: 0;' +
+        'display: flex;' +
+        'align-items: center;' +
+        'justify-content: center;' +
+        'z-index: 2;' +
+        'color: #0A84FF;' +
+        'filter: drop-shadow(0 1px 2px rgba(255,255,255,.35));' +
+      '}';
+    document.head.appendChild(style);
+  }
+
   function buildTooltipHtml(config) {
     if (!config.show_welcome_tooltip) return '';
     var posLeft = config.position === 'left';
@@ -191,23 +306,47 @@
       '</div>' +
 
       // Voice Agent View
-      '<div id="ycb-voice-view" style="display: none; flex-direction: column; flex: 1; min-height: 0; background: radial-gradient(circle at center, #101D39 0%, #080E1B 80%); padding: 20px; align-items: center; justify-content: space-between;">' +
-        '<div style="text-align: center; margin-top: 10px;">' +
-          '<div id="ycb-voice-status-title" style="font-size: 16px; font-weight: 700; color: #F3F6FF;">Tap to Speak</div>' +
-          '<div id="ycb-voice-status-sub" style="font-size: 12px; color: #71829F; margin-top: 4px;">Speak clearly into your microphone</div>' +
+      '<div id="ycb-voice-view" style="display: none; flex-direction: column; flex: 1; min-height: 0; background: radial-gradient(circle at center, #091121 0%, #080E1B 100%); padding: 18px 20px; align-items: center; justify-content: space-between; position: relative; overflow: hidden;">' +
+        // Ambient background glow
+        '<div id="ycb-ambient-glow" style="position: absolute; width: 220px; height: 220px; border-radius: 50%; filter: blur(36px); opacity: 0.25; pointer-events: none; transition: background 0.5s ease; background: ' + config.theme_color + ';"></div>' +
+
+        '<div style="text-align: center; margin-top: 6px; z-index: 2;">' +
+          '<div id="ycb-voice-status-title" style="font-size: 15px; font-weight: 700; color: #F3F6FF; letter-spacing: -0.01em;">Tap to Speak</div>' +
+          '<div id="ycb-voice-status-sub" style="font-size: 11px; color: #71829F; margin-top: 4px;">Speak clearly into your microphone</div>' +
         '</div>' +
 
-        // Animated Voice Orb Visualizer
-        '<div style="position: relative; display: flex; align-items: center; justify-content: center; margin: 24px 0;">' +
-          '<div id="ycb-orb-ring" style="position: absolute; width: 140px; height: 140px; border-radius: 50%; border: 1px solid rgba(99, 102, 241, 0.3); transition: transform 0.15s ease;"></div>' +
-          '<button id="ycb-voice-mic-btn" style="width: 90px; height: 90px; border-radius: 50%; background: linear-gradient(135deg, ' + config.theme_color + ', #9333ea); border: none; color: #ffffff; outline: none; cursor: pointer; box-shadow: 0 0 30px ' + config.theme_color + '80; display: flex; align-items: center; justify-content: center; transition: transform 0.2s, background 0.3s;">' +
-            Icons.mic() +
+        // Liquid Voice Orb Visualizer matching dedicated preview page
+        '<div style="position: relative; display: flex; align-items: center; justify-content: center; margin: 18px 0; z-index: 2;">' +
+          '<div id="ycb-orb-wrap" class="voice-orb-wrap" style="--orb-size: 130px; --orb-color-main: #0A84FF; --orb-color-light: #F4FBFF;">' +
+            '<div id="ycb-orb" class="voice-orb" data-state="idle">' +
+              '<div class="voice-orb__glow"></div>' +
+              '<div class="voice-orb__surface">' +
+                '<div class="voice-orb__blob voice-orb__blob--main"></div>' +
+                '<div class="voice-orb__blob voice-orb__blob--swirl"></div>' +
+                '<div class="voice-orb__blob voice-orb__blob--light"></div>' +
+                '<div class="voice-orb__sheen"></div>' +
+              '</div>' +
+              '<div id="ycb-orb-content" class="voice-orb__content">' +
+                Icons.mic() +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        // End Call Button
+        '<div style="margin-bottom: 8px; z-index: 2;">' +
+          '<button id="ycb-voice-end-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(244, 63, 94, 0.12); color: #fda4af; border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s; outline: none;" title="Hang Up / Cut Call">' +
+            Icons.phoneOff() +
+            '<span>Cut Call</span>' +
           '</button>' +
         '</div>' +
 
         // Spoken Transcript Box
-        '<div style="width: 100%; max-height: 110px; background: rgba(9, 17, 33, 0.8); border: 1px solid #1C2C4B; border-radius: 12px; padding: 10px 14px; overflow-y: auto;">' +
-          '<div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #71829F; margin-bottom: 4px;">Latest Speech</div>' +
+        '<div style="width: 100%; max-height: 95px; background: rgba(9, 17, 33, 0.85); border: 1px solid #1C2C4B; border-radius: 12px; padding: 10px 14px; overflow-y: auto; z-index: 2; box-sizing: border-box;">' +
+          '<div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #71829F; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;">' +
+            Icons.sparkles() +
+            '<span>Live Conversation Transcript</span>' +
+          '</div>' +
           '<div id="ycb-voice-transcript" style="font-size: 12px; color: #F3F6FF; line-height: 1.4;">Waiting for your question...</div>' +
         '</div>' +
       '</div>' +
@@ -228,10 +367,14 @@
     var activeConversationId = null;
     var voiceSessionId = null;
     var currentVoiceTurnId = null;
+    var lastSpokenUserTurnId = null;
+    var lastSpokenUserText = '';
     var isRecording = false;
     var mediaRecorder = null;
     var audioChunks = [];
     var currentAudio = null;
+    var voiceGreeted = false;
+    var lastAppendedMsg = { role: null, text: '' };
 
     var rootContainer = document.createElement('div');
     rootContainer.id = 'yourchatbot-widget-root';
@@ -241,6 +384,7 @@
     rootContainer.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
 
     function renderUI() {
+      ensureOrbStyles();
       rootContainer.style.left = config.position === 'left' ? '24px' : 'auto';
       rootContainer.style.right = config.position === 'right' ? '24px' : 'auto';
       rootContainer.innerHTML = buildTooltipHtml(config) + buildLauncherHtml(config) + buildChatWindowHtml(config);
@@ -252,7 +396,8 @@
 
     var launcherGroup, launcherBtn, voiceLauncherBtn, windowEl, closeBtn, refreshBtn, toggleModeBtn, modeBtnText;
     var formEl, inputEl, micTriggerBtn, messagesEl, tooltipEl, headerSub;
-    var chatView, voiceView, voiceMicBtn, orbRing, voiceStatusTitle, voiceStatusSub, voiceTranscript;
+    var chatView, voiceView, orbWrapEl, orbEl, orbContentEl, ambientGlowEl, voiceEndBtn;
+    var voiceStatusTitle, voiceStatusSub, voiceTranscript;
     var currentAssistantMsgBubble = null;
 
     function bindEvents() {
@@ -274,8 +419,11 @@
 
       chatView = document.getElementById('ycb-chat-view');
       voiceView = document.getElementById('ycb-voice-view');
-      voiceMicBtn = document.getElementById('ycb-voice-mic-btn');
-      orbRing = document.getElementById('ycb-orb-ring');
+      orbWrapEl = document.getElementById('ycb-orb-wrap');
+      orbEl = document.getElementById('ycb-orb');
+      orbContentEl = document.getElementById('ycb-orb-content');
+      ambientGlowEl = document.getElementById('ycb-ambient-glow');
+      voiceEndBtn = document.getElementById('ycb-voice-end-btn');
       voiceStatusTitle = document.getElementById('ycb-voice-status-title');
       voiceStatusSub = document.getElementById('ycb-voice-status-sub');
       voiceTranscript = document.getElementById('ycb-voice-transcript');
@@ -291,7 +439,12 @@
       });
       micTriggerBtn.addEventListener('click', function () { setWidgetMode('voice'); });
       formEl.addEventListener('submit', handleMessageSubmit);
-      voiceMicBtn.addEventListener('click', handleVoiceMicClick);
+      if (orbWrapEl) {
+        orbWrapEl.addEventListener('click', handleVoiceMicClick);
+      }
+      if (voiceEndBtn) {
+        voiceEndBtn.addEventListener('click', endVoiceCall);
+      }
 
       if (config.open_automatically) {
         var delay = (config.pop_after_seconds || 3) * 1000;
@@ -363,7 +516,12 @@
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: false
+          autoGainControl: false,
+          googEchoCancellation: true,
+          googExperimentalEchoCancellation: true,
+          googAutoGainControl: false,
+          googNoiseSuppression: true,
+          googHighpassFilter: true
         }
       })
       .then(function (stream) {
@@ -384,10 +542,20 @@
           var sumSquares = 0;
           for (var i = 0; i < channelData.length; i++) sumSquares += channelData[i] * channelData[i];
           var norm = Math.min(100, Math.round(Math.sqrt(sumSquares / channelData.length) * 350));
-          if (norm > 15 && orbRing) orbRing.style.transform = 'scale(' + (1 + norm / 200) + ')';
+          if (orbWrapEl) {
+            var reactive = 1 + (Math.max(0, Math.min(100, norm)) / 100) * 0.24;
+            orbWrapEl.style.setProperty('--orb-reactive', reactive);
+          }
 
+          // Downsample input rate to 16,000 Hz Mono signed 16-bit PCM.
+          // Stream microphone audio continuously to the server; the backend Silero VAD,
+          // echo cancellation guard, and Deepgram STT verify genuine user speech for barge-in.
           var pcm16 = downsampleTo16k(channelData, micAudioCtx.sampleRate);
-          try { ws.send(pcm16.buffer); } catch (err) { console.error('[Voice WS] Mic send error:', err); }
+          try {
+            ws.send(pcm16.buffer);
+          } catch (err) {
+            console.error('[Voice WS] Mic send error:', err);
+          }
         };
 
         source.connect(processor);
@@ -449,6 +617,7 @@
       currentPlaybackRms: 0,
       onPlaybackStart: null,
       onPlaybackEnd: null,
+      playingNotified: false,
       carry: null,
 
       init: function () {
@@ -457,7 +626,7 @@
           this.ctx = new AC();
           this.gainNode = this.ctx.createGain();
           this.gainNode.connect(this.ctx.destination);
-          this.nextTime = 0;                 // reset ONLY for a brand-new context
+          this.nextTime = 0;
         }
         if (this.ctx.state === 'suspended') {
           this.ctx.resume().catch(function () {});
@@ -471,8 +640,8 @@
       play: function (buffer) {
         this.init();
         var ctx = this.ctx, self = this;
+        if (ctx.state === 'suspended') ctx.resume().catch(function () {});
 
-        // keep int16 alignment across network frames (same as the hook)
         var incoming = new Uint8Array(buffer);
         var bytes = new Uint8Array(incoming.length + (this.carry === null ? 0 : 1));
         var off = 0;
@@ -481,7 +650,8 @@
         if (bytes.length % 2 === 1) this.carry = bytes[bytes.length - 1];
         var usable = bytes.length - (bytes.length % 2);
         if (!usable) return;
-        var int16 = new Int16Array(bytes.buffer, 0, usable / 2);
+        var int16 = new Int16Array(bytes.buffer, bytes.byteOffset, usable / 2);
+        if (int16.length === 0) return;
 
         var f32 = new Float32Array(int16.length);
         var sumSquares = 0;
@@ -491,45 +661,65 @@
           sumSquares += v * v;
         }
         this.currentPlaybackRms = Math.max(Math.sqrt(sumSquares / int16.length), this.currentPlaybackRms * 0.8);
+        if (orbWrapEl) {
+          var lvl = Math.min(100, Math.round(this.currentPlaybackRms * 380));
+          var reactive = 1 + (lvl / 100) * 0.35;
+          orbWrapEl.style.setProperty('--orb-reactive', reactive);
+        }
 
         var audioBuf = ctx.createBuffer(1, f32.length, 24000);
         audioBuf.getChannelData(0).set(f32);
         var src = ctx.createBufferSource();
         src.buffer = audioBuf;
         src.connect(this.gainNode || ctx.destination);
+        var now = ctx.currentTime;
         var isFirst = this.activeSources.length === 0;
-        // Jitter buffer: 60ms initial cushion on first chunk to prevent network jitter underruns
-        var start = isFirst ? (ctx.currentTime + 0.06) : Math.max(ctx.currentTime, this.nextTime);
+        // Jitter buffer matching dedicated preview hook: 60ms cushion on first chunk
+        var start = isFirst ? (now + 0.06) : Math.max(now, this.nextTime);
         src.start(start);
         this.nextTime = start + audioBuf.duration;
 
-        if (this.activeSources.length === 0 && typeof this.onPlaybackStart === 'function') {
-          this.onPlaybackStart();
-        }
         this.activeSources.push(src);
+        if (!this.playingNotified) {
+          this.playingNotified = true;
+          if (typeof this.onPlaybackStart === 'function') this.onPlaybackStart();
+        }
         src.onended = function () {
           var idx = self.activeSources.indexOf(src);
           if (idx !== -1) self.activeSources.splice(idx, 1);
           if (self.activeSources.length === 0) {
             self.currentPlaybackRms = 0;
-            if (typeof self.onPlaybackEnd === 'function') self.onPlaybackEnd();
+            if (orbWrapEl) orbWrapEl.style.setProperty('--orb-reactive', 1);
+            if (self.playingNotified) {
+              self.playingNotified = false;
+              if (typeof self.onPlaybackEnd === 'function') self.onPlaybackEnd();
+            }
           }
         };
+      },
+      isPlaying: function () {
+        return this.activeSources.length > 0;
       },
       getPlaybackRms: function () {
         return (this.activeSources.length > 0) ? this.currentPlaybackRms : 0;
       },
       stop: function () {
-        for (var i = 0; i < this.activeSources.length; i++) {
-          try { this.activeSources[i].stop(); } catch (e) {}
-        }
-        var hadSources = this.activeSources.length > 0;
-        this.activeSources = [];
+        var wasPlaying = this.playingNotified;
+        this.playingNotified = false;
         this.currentPlaybackRms = 0;
-        this.nextTime = 0;
+        if (orbWrapEl) orbWrapEl.style.setProperty('--orb-reactive', 1);
+        for (var i = 0; i < this.activeSources.length; i++) {
+          try {
+            this.activeSources[i].onended = null;
+            this.activeSources[i].stop(0);
+            this.activeSources[i].disconnect();
+          } catch (e) {}
+        }
+        this.activeSources = [];
         this.carry = null;
+        this.nextTime = 0;
         this.setVolume(1.0);
-        if (hadSources && typeof this.onPlaybackEnd === 'function') {
+        if (wasPlaying && typeof this.onPlaybackEnd === 'function') {
           this.onPlaybackEnd();
         }
       }
@@ -573,8 +763,11 @@
           console.info('[Voice WS] Connected; streaming mic');
           updateVoiceUI('idle');
           voiceWs.send(JSON.stringify({ type: 'config', language: 'en' }));
-          var welcome = config.welcome_message || 'Hello! How can I help you today?';
-          voiceWs.send(JSON.stringify({ type: 'greeting', text: welcome }));
+          if (!voiceGreeted) {
+            voiceGreeted = true;
+            var welcome = config.welcome_message || 'Hello! How can I help you today?';
+            voiceWs.send(JSON.stringify({ type: 'greeting', text: welcome }));
+          }
           startVoiceStreaming(voiceWs);
         };
 
@@ -593,34 +786,31 @@
               if (m.type === 'session_created') {
                 voiceSessionId = m.session_id;
               } else if (m.type === 'audio_start') {
+                if (currentVoiceTurnId && m.turn_id && currentVoiceTurnId !== m.turn_id) {
+                  pcmPlayer.stop();
+                }
                 currentVoiceTurnId = m.turn_id || null;
                 pcmPlayer.init();
               } else if (m.type === 'state') {
                 if (m.state === 'speaking') {
                   updateVoiceUI('speaking');
-                } else if (m.state === 'thinking') {
+                } else if (m.state === 'thinking' || m.state === 'processing') {
                   updateVoiceUI('processing');
                 } else if (m.state === 'listening') {
                   updateVoiceUI('listening');
                 } else if (m.state === 'idle') {
-                  var isSpk = (window.speechSynthesis && window.speechSynthesis.speaking) ||
-                              (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime) ||
-                              (pcmPlayer.activeSources && pcmPlayer.activeSources.length > 0);
+                  var isSpk = (window.speechSynthesis && window.speechSynthesis.speaking) || pcmPlayer.isPlaying();
                   if (!isSpk) {
                     updateVoiceUI('idle');
                   }
                 }
               } else if (m.type === 'duck_audio') {
-                pcmPlayer.setVolume(0.3);
+                pcmPlayer.setVolume(0.65);
               } else if (m.type === 'unduck_audio') {
                 pcmPlayer.setVolume(1.0);
               } else if (m.type === 'speech_start') {
-                var isSpk2 = (window.speechSynthesis && window.speechSynthesis.speaking) ||
-                             (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime) ||
-                             (pcmPlayer.activeSources && pcmPlayer.activeSources.length > 0);
-                if (!isSpk2) {
-                  updateVoiceUI('listening');
-                }
+                // Visual hint only - authoritative state is driven by server state events
+                if (orbRing) orbRing.style.transform = 'scale(1.2)';
               } else if (m.type === 'tts_fallback') {
                 if (m.text) {
                   speakFallback(m.text);
@@ -640,6 +830,12 @@
                   currentAssistantMsgBubble = null;
                   voiceTranscript.innerHTML = '<strong>You:</strong> ' + m.text;
                   updateVoiceUI('processing');
+                  var userTxt = (m.text || '').trim();
+                  if (userTxt && !(lastAppendedMsg.role === 'user' && lastAppendedMsg.text === userTxt)) {
+                    lastSpokenUserText = userTxt;
+                    lastSpokenUserTurnId = m.turn_id || null;
+                    appendMessage('user', userTxt);
+                  }
                 } else {
                   if (m.is_status) {
                     if (voiceStatusSub) voiceStatusSub.innerText = m.text;
@@ -649,10 +845,17 @@
                     if (voiceStatusTitle) voiceStatusTitle.innerText = 'Speaking...';
                     if (voiceStatusSub) voiceStatusSub.innerText = 'Delivering response...';
                     voiceTranscript.innerHTML = '<strong>Agent:</strong> ' + m.text;
+                    var agentTxt = (m.text || '').trim();
                     if (!currentAssistantMsgBubble) {
-                      currentAssistantMsgBubble = appendMessage('assistant', m.text);
+                      if (lastAppendedMsg.role === 'assistant' && lastAppendedMsg.text === agentTxt) {
+                        var lastWrap = messagesEl.lastElementChild;
+                        currentAssistantMsgBubble = lastWrap ? (lastWrap.querySelector('div') || lastWrap) : null;
+                      } else {
+                        currentAssistantMsgBubble = appendMessage('assistant', m.text);
+                      }
                     } else {
                       currentAssistantMsgBubble.innerHTML = renderMarkdown(m.text);
+                      lastAppendedMsg.text = agentTxt;
                       messagesEl.scrollTop = messagesEl.scrollHeight;
                     }
                     if (!m.partial) {
@@ -667,6 +870,8 @@
               } else if (m.type === 'turn_end') {
                 currentAssistantMsgBubble = null;
                 currentVoiceTurnId = null;
+                lastSpokenUserTurnId = null;
+                lastSpokenUserText = '';
                 if (!window.speechSynthesis || !window.speechSynthesis.speaking) {
                   updateVoiceUI('idle');
                 }
@@ -713,13 +918,16 @@
       if (micAudioCtx && micAudioCtx.state === 'suspended') {
         micAudioCtx.resume().catch(function () {});
       }
-      var isPlaying = (window.speechSynthesis && window.speechSynthesis.speaking) ||
-                      (pcmPlayer.ctx && pcmPlayer.nextTime > pcmPlayer.ctx.currentTime) ||
-                      (pcmPlayer.activeSources && pcmPlayer.activeSources.length > 0);
+      var isPlaying = (window.speechSynthesis && window.speechSynthesis.speaking) || pcmPlayer.isPlaying();
       if (isPlaying) {
         stopAudioPlayback();
         if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
-          try { voiceWs.send(JSON.stringify({ type: 'interrupt', turn_id: currentVoiceTurnId || undefined })); } catch (e) {}
+          try {
+            voiceWs.send(JSON.stringify({
+              type: 'interrupt',
+              turn_id: currentVoiceTurnId || undefined
+            }));
+          } catch (e) {}
         }
         updateVoiceUI('listening');
         return;
@@ -866,52 +1074,61 @@
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
-      updateVoiceUI('idle');
+      currentAssistantMsgBubble = null;
     }
 
     function updateVoiceUI(state) {
+      if (orbEl) {
+        orbEl.setAttribute('data-state', state);
+      }
+      var ambientColor = '#0A84FF';
       if (state === 'listening') {
-        voiceStatusTitle.innerText = 'Listening...';
-        voiceStatusSub.innerText = 'Tap button when done speaking';
-        voiceMicBtn.style.background = '#EF4444';
-        voiceMicBtn.style.boxShadow = '0 0 35px rgba(239, 68, 68, 0.6)';
-        orbRing.style.transform = 'scale(1.2)';
-        orbRing.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        ambientColor = '#EF4444';
+        voiceStatusTitle.innerText = 'Listening to you...';
+        voiceStatusSub.innerText = 'Tap orb when done speaking';
+        if (orbContentEl) orbContentEl.innerHTML = Icons.square();
       } else if (state === 'processing') {
-        voiceStatusTitle.innerText = 'Processing...';
-        voiceStatusSub.innerText = 'Transcribing and thinking...';
-        voiceMicBtn.style.background = '#8B5CF6';
-        voiceMicBtn.style.boxShadow = '0 0 30px rgba(139, 92, 246, 0.6)';
-        orbRing.style.transform = 'scale(1.05)';
-        orbRing.style.borderColor = 'rgba(139, 92, 246, 0.5)';
+        ambientColor = '#A855F7';
+        voiceStatusTitle.innerText = 'Thinking & processing...';
+        voiceStatusSub.innerText = 'Transcribing and executing tools...';
+        if (orbContentEl) orbContentEl.innerHTML = Icons.sparkles();
       } else if (state === 'speaking') {
-        voiceStatusTitle.innerText = 'Speaking...';
-        voiceStatusSub.innerText = 'Tap to interrupt speech';
-        voiceMicBtn.style.background = '#10B981';
-        voiceMicBtn.style.boxShadow = '0 0 35px rgba(16, 185, 129, 0.6)';
-        orbRing.style.transform = 'scale(1.15)';
-        orbRing.style.borderColor = 'rgba(16, 214, 160, 0.5)';
+        ambientColor = '#10D6A0';
+        voiceStatusTitle.innerText = 'Speaking response...';
+        voiceStatusSub.innerText = 'Tap orb to interrupt anytime';
+        if (orbContentEl) orbContentEl.innerHTML = Icons.volume();
       } else if (state === 'connecting') {
+        ambientColor = '#F59E0B';
         voiceStatusTitle.innerText = 'Connecting...';
-        voiceStatusSub.innerText = 'Setting up your voice session...';
-        voiceMicBtn.style.background = 'linear-gradient(135deg, ' + config.theme_color + ', #9333ea)';
-        voiceMicBtn.style.boxShadow = '0 0 30px ' + config.theme_color + '80';
-        orbRing.style.transform = 'scale(1)';
-        orbRing.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+        voiceStatusSub.innerText = 'Setting up live voice stream...';
+        if (orbContentEl) orbContentEl.innerHTML = Icons.sparkles();
       } else if (state === 'error') {
+        ambientColor = '#EF4444';
         voiceStatusTitle.innerText = 'Connection Issue';
         voiceStatusSub.innerText = 'Tap orb to reconnect';
-        voiceMicBtn.style.background = '#EF4444';
-        voiceMicBtn.style.boxShadow = '0 0 30px rgba(239, 68, 68, 0.5)';
-        orbRing.style.transform = 'scale(1)';
-        orbRing.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+        if (orbContentEl) orbContentEl.innerHTML = Icons.refresh();
       } else {
-        voiceStatusTitle.innerText = 'Tap to Speak';
-        voiceStatusSub.innerText = 'Speak clearly into your microphone';
-        voiceMicBtn.style.background = 'linear-gradient(135deg, ' + config.theme_color + ', #9333ea)';
-        voiceMicBtn.style.boxShadow = '0 0 30px ' + config.theme_color + '80';
-        orbRing.style.transform = 'scale(1)';
-        orbRing.style.borderColor = 'rgba(99, 102, 241, 0.3)';
+        ambientColor = config.theme_color || '#0A84FF';
+        voiceStatusTitle.innerText = 'Ready to listen';
+        voiceStatusSub.innerText = 'Tap orb or speak clearly into microphone';
+        if (orbContentEl) orbContentEl.innerHTML = Icons.mic();
+      }
+      if (ambientGlowEl) {
+        ambientGlowEl.style.background = ambientColor;
+      }
+    }
+
+    function endVoiceCall() {
+      if (voiceWs && voiceWs.readyState === WebSocket.OPEN) {
+        try { voiceWs.send(JSON.stringify({ type: 'end_call' })); } catch (e) {}
+        try { voiceWs.close(1000, 'call_ended'); } catch (e) {}
+        voiceWs = null;
+      }
+      stopAudioPlayback();
+      stopVoiceStreaming();
+      updateVoiceUI('idle');
+      if (voiceTranscript) {
+        voiceTranscript.innerHTML = '<em>— Call ended —</em>';
       }
     }
 
@@ -920,11 +1137,22 @@
       messagesEl.innerHTML = '';
       activeConversationId = null;
       voiceSessionId = null;
+      voiceGreeted = false;
+      lastAppendedMsg = { role: null, text: '' };
       stopAudioPlayback();
       appendMessage('assistant', config.welcome_message);
     }
 
     function appendMessage(role, text) {
+      var trimmed = (text || '').trim();
+      if (!trimmed) return null;
+      if (lastAppendedMsg.role === role && lastAppendedMsg.text === trimmed) {
+        var lastWrap = messagesEl.lastElementChild;
+        return lastWrap ? (lastWrap.querySelector('div') || lastWrap) : null;
+      }
+      lastAppendedMsg.role = role;
+      lastAppendedMsg.text = trimmed;
+
       var isUser = role === 'user';
       var msgWrap = document.createElement('div');
       msgWrap.style.display = 'flex';

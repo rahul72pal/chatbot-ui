@@ -14,10 +14,10 @@ import {
   HelpCircle,
   Headphones,
   Bot,
-  Loader2,
   PhoneOff,
 } from 'lucide-react';
 import { useVoiceAgent } from '../hooks/useVoiceAgent';
+import VoiceOrb from './VoiceOrb';
 
 export interface VoiceAgentViewProps {
   botName?: string;
@@ -105,8 +105,6 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
     }
   };
 
-  const dynamicScale = 1 + (audioLevel / 100) * 0.25;
-  const outerRippleScale = 1 + (audioLevel / 100) * 0.45;
   const isConnecting = voiceState === 'connecting';
   const latestTurn = transcripts.length > 0 ? transcripts[transcripts.length - 1] : null;
 
@@ -199,137 +197,26 @@ export const VoiceAgentView: React.FC<VoiceAgentViewProps> = ({
         className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-b from-[#080E1B] via-[#091121] to-[#080E1B]"
         style={{ minHeight: 0 }}
       >
-        {/* Ambient Glow Backdrop */}
-        <div
-          className="absolute w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-500"
-          style={{
-            backgroundColor:
-              voiceState === 'listening'
-                ? '#EF4444'
-                : voiceState === 'speaking'
-                ? '#10D6A0'
-                : voiceState === 'processing'
-                ? '#A855F7'
-                : isConnecting
-                ? '#F59E0B'
-                : themeColor,
-            transform: `scale(${dynamicScale})`,
-          }}
-        />
-
-        {/* Orb + rings */}
-        <div className="relative flex items-center justify-center">
-          {/* Outer Ripple Ring */}
-          <div
-            className="absolute rounded-full border transition-transform duration-150 pointer-events-none"
-            style={{
-              width: '180px',
-              height: '180px',
-              transform: `scale(${outerRippleScale})`,
-              borderColor:
-                voiceState === 'listening'
-                  ? 'rgba(239, 68, 68, 0.4)'
-                  : voiceState === 'speaking'
-                  ? 'rgba(16, 214, 160, 0.4)'
-                  : isConnecting
-                  ? 'rgba(245, 158, 11, 0.4)'
-                  : 'rgba(99, 102, 241, 0.2)',
-            }}
-          />
-
-          {/* Secondary Ring */}
-          <div
-            className="absolute rounded-full border transition-transform duration-200 pointer-events-none"
-            style={{
-              width: '140px',
-              height: '140px',
-              transform: `scale(${dynamicScale})`,
-              borderColor:
-                voiceState === 'listening'
-                  ? 'rgba(239, 68, 68, 0.5)'
-                  : voiceState === 'speaking'
-                  ? 'rgba(16, 214, 160, 0.5)'
-                  : isConnecting
-                  ? 'rgba(245, 158, 11, 0.5)'
-                  : 'rgba(99, 102, 241, 0.3)',
-            }}
-          />
-
-          {/* Core Orb */}
-          <div
-            className="w-24 h-24 rounded-full shadow-2xl flex items-center justify-center relative cursor-pointer transition-all duration-300"
-            style={{
-              backgroundColor:
-                voiceState === 'listening'
-                  ? '#EF4444'
-                  : voiceState === 'speaking'
-                  ? '#10B981'
-                  : voiceState === 'processing'
-                  ? '#8B5CF6'
-                  : isConnecting
-                  ? '#F59E0B'
-                  : themeColor,
-              boxShadow:
-                voiceState === 'listening'
-                  ? '0 0 35px rgba(239, 68, 68, 0.6)'
-                  : voiceState === 'speaking'
-                  ? '0 0 35px rgba(16, 185, 129, 0.6)'
-                  : isConnecting
-                  ? '0 0 30px rgba(245, 158, 11, 0.5)'
-                  : `0 0 30px ${themeColor}60`,
-              transform: `scale(${dynamicScale})`,
-            }}
+        {/* Voice Orb — two colors flowing in a circle, size breathes with state + audio level */}
+        <div className="relative flex items-center justify-center mb-6">
+          <VoiceOrb
+            state={voiceState}
+            audioLevel={audioLevel}
+            size={150}
             onClick={handleMainButtonClick}
           >
-            {isConnecting || voiceState === 'processing' ? (
-              <Loader2 className="w-8 h-8 text-white animate-spin" />
-            ) : voiceState === 'error' ? (
-              <RotateCcw className="w-8 h-8 text-white transition-transform hover:rotate-180 duration-300" />
+            {voiceState === 'error' ? (
+              <RotateCcw className="w-7 h-7 text-white" />
             ) : voiceState === 'listening' ? (
-              <Square className="w-7 h-7 text-white animate-pulse" />
+              <Square className="w-6 h-6 text-white" />
             ) : voiceState === 'speaking' ? (
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-6 bg-white rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-9 bg-white rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-5 bg-white rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
+              <Volume2 className="w-7 h-7 text-white" />
+            ) : voiceState === 'processing' ? (
+              <Sparkles className="w-7 h-7 text-white" />
             ) : (
-              <Mic className="w-8 h-8 text-white transition-transform hover:scale-110" />
+              <Mic className="w-8 h-8 text-white" />
             )}
-          </div>
-        </div>
-
-        {/* Waveform bars */}
-        <div className="flex items-center justify-center gap-1.5 h-8 mt-6 mb-2">
-          {[12, 24, 38, 55, 38, 24, 12].map((height, idx) => {
-            const h =
-              voiceState === 'listening' || voiceState === 'speaking'
-                ? Math.max(6, Math.min(32, Math.round((audioLevel / 100) * height * 1.5)))
-                : isConnecting || voiceState === 'processing'
-                ? Math.round(10 + Math.sin(Date.now() / 200 + idx) * 8)
-                : 4;
-            return (
-              <span
-                key={idx}
-                className="w-1 rounded-full transition-all duration-75"
-                style={{
-                  height: `${h}px`,
-                  backgroundColor:
-                    voiceState === 'listening'
-                      ? '#EF4444'
-                      : voiceState === 'speaking'
-                      ? '#10D6A0'
-                      : voiceState === 'processing'
-                      ? '#A855F7'
-                      : voiceState === 'error'
-                      ? '#F43F5E'
-                      : isConnecting
-                      ? '#F59E0B'
-                      : '#2A3C60',
-                }}
-              />
-            );
-          })}
+          </VoiceOrb>
         </div>
 
         {/* Status text */}
