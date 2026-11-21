@@ -20,6 +20,7 @@ import Documents from './pages/Documents';
 import ApiModels from './pages/ApiModels';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
+import Appointments from './pages/Appointments';
 import DedicatedPreview from './pages/DedicatedPreview';
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
           <Route path="conversations" element={<Conversations />} />
           <Route path="conversations/:conversationId" element={<ConversationDetail />} />
           <Route path="documents" element={<Documents />} />
+          <Route path="appointments" element={<Appointments />} />
           <Route path="api-models" element={<ApiModels />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="settings" element={<Settings />} />

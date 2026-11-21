@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Orb test</title>
+<style>
+  body { background: #080E1B; font-family: 'DM Sans', 'Inter', sans-serif; margin: 0; padding: 24px; color: #F3F6FF; }
+  h1 { font-size: 16px; margin: 0 0 4px; }
+  p.sub { color: #71829F; font-size: 12px; margin: 0 0 20px; }
+  .grid { display: flex; gap: 18px; flex-wrap: wrap; }
+  .card { background: #0D1730; border: 1px solid #1C2C4B; border-radius: 16px; padding: 16px; text-align: center; }
+  .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-top: 12px; }
+  .hint { font-size: 10px; color: #71829F; margin-top: 2px; }
+  .card .voice-orb-wrap { margin: 8px auto 0; }
+  .icon { width: 26px; height: 26px; }
+
+  /* ==== exact VoiceOrb.css ==== */
+  .voice-orb-wrap { width: var(--orb-size, 150px); height: var(--orb-size, 150px); position: relative; display: flex; align-items: center; justify-content: center; transform: scale(var(--orb-reactive, 1)); will-change: transform; }
+  .voice-orb { position: absolute; inset: 0; border-radius: 50%; animation: orb-breathe 2.8s ease-in-out infinite; will-change: transform; }
+  .voice-orb[data-state='idle']        { animation: orb-breathe 3.2s ease-in-out infinite; }
+  .voice-orb[data-state='connecting']  { animation: orb-breathe 1.6s ease-in-out infinite; }
+  .voice-orb[data-state='listening']   { animation: orb-swell 1.15s ease-in-out infinite; }
+  .voice-orb[data-state='processing']  { animation: orb-breathe 2.4s ease-in-out infinite; }
+  .voice-orb[data-state='speaking']    { animation: orb-swell 1.7s ease-in-out infinite; }
+  .voice-orb[data-state='error']       { animation: orb-throb 0.9s ease-in-out infinite; }
+  @keyframes orb-breathe { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+  @keyframes orb-swell   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+  @keyframes orb-throb   { 0%,100%{transform:scale(0.97)} 50%{transform:scale(1.08)} }
+  .voice-orb__glow { position: absolute; inset: -16%; border-radius: 50%; background: radial-gradient(circle, var(--orb-color-main), transparent 70%); filter: blur(26px); opacity: .5; animation: orb-glow-pulse 4s ease-in-out infinite; }
+  @keyframes orb-glow-pulse { 0%,100%{opacity:.4} 50%{opacity:.65} }
+  .voice-orb__surface { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; background: var(--orb-color-light); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 10px 34px rgba(0,0,0,.5); }
+  .voice-orb__blob { position: absolute; border-radius: 50%; filter: blur(18px); will-change: transform; }
+  .voice-orb__blob--main { width: 170%; height: 170%; left: -35%; top: 30%; background: radial-gradient(circle at 50% 30%, var(--orb-color-main) 0%, var(--orb-color-main) 46%, transparent 68%); animation: orb-blob-main 7s ease-in-out infinite; }
+  .voice-orb__blob--swirl { width: 80%; height: 80%; left: 40%; top: 18%; opacity: .75; background: radial-gradient(circle, var(--orb-color-main) 0%, transparent 65%); animation: orb-blob-swirl 10s linear infinite; }
+  .voice-orb__blob--light { width: 130%; height: 130%; left: -20%; top: -52%; background: radial-gradient(circle at 50% 60%, var(--orb-color-light) 0%, rgba(255,255,255,.55) 55%, transparent 75%); animation: orb-blob-light 9s ease-in-out infinite; }
+  .voice-orb__sheen { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 30% 22%, rgba(255,255,255,.35), transparent 45%); pointer-events: none; }
+  @keyframes orb-blob-main { 0%,100%{transform:translate(-4%,0) scale(1)} 33%{transform:translate(3%,3%) scale(1.06) rotate(2deg)} 66%{transform:translate(-2%,-3%) scale(.97) rotate(-2deg)} }
+  @keyframes orb-blob-swirl { from{transform:rotate(0) translateX(0)} 25%{transform:rotate(90deg) translateX(6%)} 50%{transform:rotate(180deg) translateX(0)} 75%{transform:rotate(270deg) translateX(-6%)} to{transform:rotate(360deg) translateX(0)} }
+  @keyframes orb-blob-light { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(5%,7%) scale(1.05)} 66%{transform:translate(-6%,2%) scale(.96)} }
+  .voice-orb__content { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2; color: color-mix(in srgb, var(--orb-color-main) 55%, #0a0f1e); filter: drop-shadow(0 1px 2px rgba(255,255,255,.35)); }
+</style>
+</head>
+<body>
+  <h1>VoiceOrb — liquid flow, all states</h1>
+  <p class="sub">Full liquid sphere: light tint + saturated tint drift into each other; size breathes per state + audio level.</p>
+  <div class="grid" id="grid"></div>
+<script>
+  const states = [
+    ['idle',       'Idle / Ready',       'calm slow breathe',            '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>'],
+    ['listening',  'Listening',          'quick lively swell',           '<rect x="6" y="6" width="12" height="12" rx="2"/>'],
+    ['processing', 'Thinking',           'slow deep breathe',            '<circle cx="12" cy="12" r="4"/><path d="M12 3v1.5M12 19.5V21M3 12h1.5M19.5 12H21M5.6 5.6l1 1M17.4 17.4l1 1M5.6 18.4l1-1M17.4 6.6l1-1"/>'],
+    ['speaking',   'Speaking',           'biggest reach + audio pulse',  '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/>'],
+    ['connecting', 'Connecting',         'gentle eager pulse',           '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>'],
+    ['error',      'Error / Retry',      'short anxious throb',          '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'],
+  ];
+  const MAIN = '#0A84FF', LIGHT = '#F4FBFF';
+  document.getElementById('grid').innerHTML = states.map(([st, label, hint, icon]) => `
+    <div class="card">
+      <div class="voice-orb-wrap" style="--orb-size:96px;--orb-color-main:${MAIN};--orb-color-light:${LIGHT}">
+        <div class="voice-orb" data-state="${st}">
+          <div class="voice-orb__glow"></div>
+          <div class="voice-orb__surface">
+            <div class="voice-orb__blob voice-orb__blob--main"></div>
+            <div class="voice-orb__blob voice-orb__blob--swirl"></div>
+            <div class="voice-orb__blob voice-orb__blob--light"></div>
+            <div class="voice-orb__sheen"></div>
+          </div>
+          <div class="voice-orb__content"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></div>
+        </div>
+      </div>
+      <div class="label" style="color:#5AB0FF">${label}</div>
+      <div class="hint">${hint}</div>
+    </div>`).join('');
+</script>
+</body>
+</html>

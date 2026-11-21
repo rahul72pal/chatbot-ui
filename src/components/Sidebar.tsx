@@ -12,7 +12,8 @@ import {
   X,
   Layers,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Calendar
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/chatbots', label: 'Chatbots', icon: Bot },
+    { to: '/appointments', label: 'Appointments', icon: Calendar },
     { to: '/conversations', label: 'Conversations', icon: MessageSquare },
     { to: '/documents', label: 'Knowledge Base', icon: FileText },
     { to: '/api-models', label: 'LLM Configuration', icon: Sliders },

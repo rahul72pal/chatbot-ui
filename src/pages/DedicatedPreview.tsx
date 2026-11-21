@@ -8,10 +8,9 @@ import {
   Check, 
   Code, 
   Zap, 
-  X, 
   Headphones, 
   HelpCircle, 
-  ShoppingBag 
+  ShoppingBag
 } from 'lucide-react';
 import { chatbotApi } from '../api';
 import ChatWindow from '../components/ChatWindow';
@@ -23,6 +22,7 @@ export const DedicatedPreview: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'preview' | 'embed'>('preview');
   const [isOpen, setIsOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'chat' | 'voice'>('chat');
 
   // Fetch chatbot config from public or authenticated endpoint
   const { data: chatbot, isLoading } = useQuery<any>({
@@ -59,6 +59,7 @@ export const DedicatedPreview: React.FC = () => {
   const embedScript = `<script 
   src="${BASE_URL}/widget.js" 
   data-chatbot-id="${botId || 'YOUR_BOT_ID'}" 
+  data-api-base="${BASE_URL}"
   defer>
 </script>`;
 
@@ -233,14 +234,6 @@ export const DedicatedPreview: React.FC = () => {
       >
         {isOpen ? (
           <div className="w-full h-[540px] max-h-[80vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl relative border border-[#1C2C4B] bg-[#080E1B]">
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="absolute top-3.5 right-3.5 z-30 text-white/80 hover:text-white p-1.5 hover:bg-white/10 rounded-xl transition-colors"
-              aria-label="Close widget"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
             <ChatWindow 
               name={name}
               welcomeMessage={welcomeMessage}
@@ -250,6 +243,8 @@ export const DedicatedPreview: React.FC = () => {
               chatbotId={botId}
               interactive={true}
               showDebugToggle={false}
+              defaultMode={previewMode}
+              onClose={() => setIsOpen(false)}
             />
           </div>
         ) : (
@@ -269,7 +264,7 @@ export const DedicatedPreview: React.FC = () => {
             )}
 
             <button
-              onClick={() => setIsOpen(true)}
+              onClick={() => { setPreviewMode('chat'); setIsOpen(true); }}
               className={getLauncherClasses()}
               style={{ backgroundColor: themeColor }}
               title="Open Chat Assistant"

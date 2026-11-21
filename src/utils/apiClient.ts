@@ -69,6 +69,8 @@ export const apiClient = {
     request(path, { ...options, method: 'POST', body }),
   put: (path: string, body?: any, options?: RequestOptions) => 
     request(path, { ...options, method: 'PUT', body }),
+  patch: (path: string, body?: any, options?: RequestOptions) => 
+    request(path, { ...options, method: 'PATCH', body }),
   delete: (path: string, options?: RequestOptions) => 
     request(path, { ...options, method: 'DELETE' }),
 };

@@ -8,10 +8,11 @@ export interface ChatLauncherProps {
 
 export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
   const context = useContext(ChatbotContext);
-  
+
   const config = context?.config || {};
   const isOpen = context?.isOpen || false;
   const toggleChat = context?.toggleChat;
+  const openWithMode = context?.openWithMode;
 
   const {
     themeColor = '#4F46E5',
@@ -38,16 +39,19 @@ export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
     return <MessageSquare className="w-6 h-6" />;
   };
 
-  const handleClick = () => {
+  const handleChatClick = () => {
     if (onClick) {
       onClick();
+    } else if (openWithMode) {
+      openWithMode('chat');
     } else if (toggleChat) {
       toggleChat(true);
     }
   };
 
+
   return (
-    <div className="relative flex flex-col items-end gap-3 select-none">
+    <div className={`relative flex flex-col select-none ${position === 'left' ? 'items-start' : 'items-end'} gap-3`}>
       {/* Floating Welcome Tooltip */}
       {showWelcomeTooltip && (
         <div
@@ -56,7 +60,9 @@ export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
           }`}
           style={{ animationDuration: '3s' }}
         >
-          {welcomeMessage}
+          <div className="flex items-center gap-1.5">
+            <span>{welcomeMessage}</span>
+          </div>
           <div
             className={`absolute -bottom-1.5 w-3 h-3 bg-[#091121] border-r border-b border-[#1C2C4B] transform rotate-45 ${
               position === 'left' ? 'left-5' : 'right-5'
@@ -65,10 +71,10 @@ export const ChatLauncher: React.FC<ChatLauncherProps> = ({ onClick }) => {
         </div>
       )}
 
-      {/* Launcher Floating Button */}
+      {/* Primary Chatbot Launcher */}
       <button
-        onClick={handleClick}
-        className={`w-14 h-14 shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-105 duration-150 text-white z-40 outline-none border-none ${getLauncherRadius()}`}
+        onClick={handleChatClick}
+        className={`w-14 h-14 shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-105 duration-150 text-white z-40 outline-none border-none relative group ${getLauncherRadius()}`}
         style={{ backgroundColor: themeColor }}
         title="Open Chat Assistant"
         aria-label="Open Chat Assistant"

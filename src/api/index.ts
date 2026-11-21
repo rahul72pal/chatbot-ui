@@ -4,6 +4,7 @@ export * from './authApi';
 export * from './documentApi';
 export * from './configApi';
 export * from './analyticsApi';
+export * from './voiceApi';
 
 export { chatbotApi } from './chatbotApi';
 export { messageApi } from './messageApi';
@@ -11,4 +12,5 @@ export { authApi } from './authApi';
 export { documentApi } from './documentApi';
 export { configApi } from './configApi';
 export { analyticsApi } from './analyticsApi';
+export { voiceApi } from './voiceApi';
 

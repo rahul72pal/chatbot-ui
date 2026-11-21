@@ -31,6 +31,7 @@ export const Home: React.FC = () => {
   const sampleEmbedScript = `<script 
   src="${BASE_URL}/widget.js" 
   data-chatbot-id="YOUR_CHATBOT_ID" 
+  data-api-base="${BASE_URL}"
   defer>
 </script>`;
 
