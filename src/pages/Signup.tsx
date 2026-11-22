@@ -19,6 +19,7 @@ export const Signup: React.FC = () => {
     mutationFn: (payload: any) => authApi.login(payload),
     onSuccess: (data: any) => {
       localStorage.setItem('access_token', data.access_token);
+      if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
       queryClient.invalidateQueries({ queryKey: ['llmConfigs'] });
       toast.success('Account created! Please configure your LLM settings.', 'Welcome');
       navigate('/llm-setup');

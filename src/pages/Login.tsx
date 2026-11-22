@@ -17,6 +17,7 @@ export const Login: React.FC = () => {
     mutationFn: (payload: any) => authApi.login(payload),
     onSuccess: (data: any) => {
       localStorage.setItem('access_token', data.access_token);
+      if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
       toast.success('Signed in successfully!', 'Welcome Back');
       navigate('/dashboard');
     },

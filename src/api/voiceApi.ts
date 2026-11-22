@@ -1,4 +1,4 @@
-import { BASE_URL } from '../utils/apiClient';
+import { BASE_URL, tryRefreshAccessToken } from '../utils/apiClient';
 
 export interface VoiceSessionCreated {
   session_id: string;
@@ -31,6 +31,25 @@ export interface VoiceTurnResponse {
 }
 
 export const voiceApi = {
+  /**
+   * Shared fetch helper: on a 401 (expired access token), attempts one token
+   * refresh and retries the request with the new token before giving up.
+   */
+  _fetchWithAuthRefresh: async (url: string, init: RequestInit): Promise<Response> => {
+    let res = await fetch(url, init);
+
+    if (res.status === 401) {
+      const refreshed = await tryRefreshAccessToken();
+      if (refreshed) {
+        const headers = new Headers(init.headers || {});
+        headers.set('Authorization', `Bearer ${localStorage.getItem('access_token')}`);
+        res = await fetch(url, { ...init, headers });
+      }
+    }
+
+    return res;
+  },
+
   createSession: async (language: string = 'en'): Promise<VoiceSessionCreated> => {
     const token = localStorage.getItem('access_token');
     const headers: Record<string, string> = {
@@ -40,7 +59,7 @@ export const voiceApi = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${BASE_URL}/api/v1/voice/session`, {
+    const res = await voiceApi._fetchWithAuthRefresh(`${BASE_URL}/api/v1/voice/session`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ language }),
@@ -77,7 +96,7 @@ export const voiceApi = {
       formData.append('duration_ms', String(Math.round(durationMs)));
     }
 
-    const res = await fetch(`${BASE_URL}/api/v1/voice/turn`, {
+    const res = await voiceApi._fetchWithAuthRefresh(`${BASE_URL}/api/v1/voice/turn`, {
       method: 'POST',
       headers,
       body: formData,
@@ -120,7 +139,7 @@ export const voiceApi = {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`${BASE_URL}/api/v1/voice/speak`, {
+    const res = await voiceApi._fetchWithAuthRefresh(`${BASE_URL}/api/v1/voice/speak`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ session_id: sessionId, text }),

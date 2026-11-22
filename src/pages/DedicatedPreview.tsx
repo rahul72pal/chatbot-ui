@@ -46,6 +46,14 @@ export const DedicatedPreview: React.FC = () => {
   const showWelcomeTooltip = chatbot?.show_welcome_tooltip ?? true;
   const openAutomatically = chatbot?.open_automatically ?? false;
   const popAfterSeconds = chatbot?.pop_after_seconds ?? 3;
+  const showFloatingPrompts = chatbot?.show_floating_prompts ?? true;
+  const suggestedPrompts = Array.isArray(chatbot?.suggested_prompts)
+    ? chatbot.suggested_prompts 
+    : [
+        'What services do you offer?',
+        'How do I check my appointment?',
+        'Can I talk to support?'
+      ];
 
   useEffect(() => {
     if (openAutomatically) {
@@ -244,6 +252,8 @@ export const DedicatedPreview: React.FC = () => {
               interactive={true}
               showDebugToggle={false}
               defaultMode={previewMode}
+              showFloatingPrompts={showFloatingPrompts}
+              suggestedPrompts={suggestedPrompts}
               onClose={() => setIsOpen(false)}
             />
           </div>

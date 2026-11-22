@@ -32,6 +32,10 @@ export interface Chatbot {
   avatar: string; // 'smart_toy' or path
   position: 'right' | 'left';
   bubbleStyle: 'pill' | 'square' | 'rounded';
+  suggestedPrompts?: string[];
+  suggested_prompts?: string[];
+  showFloatingPrompts?: boolean;
+  show_floating_prompts?: boolean;
 }
 
 export interface RetrievalResult {

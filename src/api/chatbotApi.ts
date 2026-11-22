@@ -17,6 +17,8 @@ export interface ChatbotPayload {
   open_automatically?: boolean;
   pop_after_seconds?: number;
   show_welcome_tooltip?: boolean;
+  show_floating_prompts?: boolean;
+  suggested_prompts?: string[];
 }
 
 export const chatbotApi = {
