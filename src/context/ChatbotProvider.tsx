@@ -14,6 +14,8 @@ export interface ChatbotConfig {
   showDebugToggle?: boolean;
   showWelcomeTooltip?: boolean;
   defaultMode?: 'chat' | 'voice';
+  showFloatingPrompts?: boolean;
+  suggestedPrompts?: string[];
   onQueryExecuted?: (query: string, results: any) => void;
 }
 
@@ -60,6 +62,12 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
   showWelcomeTooltip = true,
   defaultOpen = false,
   defaultMode = 'chat',
+  showFloatingPrompts = true,
+  suggestedPrompts = [
+    'What services do you offer?',
+    'How do I check my appointment?',
+    'Can I talk to support?'
+  ],
   onQueryExecuted
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -167,6 +175,8 @@ export const ChatbotProvider: React.FC<ChatbotProviderProps> = ({
     showDebugToggle,
     showWelcomeTooltip,
     defaultMode,
+    showFloatingPrompts,
+    suggestedPrompts,
     onQueryExecuted
   };
 

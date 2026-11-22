@@ -94,15 +94,27 @@ const Reveal: React.FC<{
   as?: 'div' | 'section' | 'span';
 }> = ({ children, delay = 0, className = '', as = 'div' }) => {
   const { ref, inView } = useInView<HTMLDivElement>(0.15);
-  const Tag = as as React.ElementType;
+  const style = { ['--reveal-delay' as string]: `${delay}ms` };
+  const classes = `reveal ${inView ? 'is-visible' : ''} ${className}`;
+
+  if (as === 'section') {
+    return (
+      <section ref={ref as React.RefObject<HTMLElement | null>} style={style} className={classes}>
+        {children}
+      </section>
+    );
+  }
+  if (as === 'span') {
+    return (
+      <span ref={ref as React.RefObject<HTMLSpanElement | null>} style={style} className={classes}>
+        {children}
+      </span>
+    );
+  }
   return (
-    <Tag
-      ref={ref}
-      style={{ ['--reveal-delay' as string]: `${delay}ms` }}
-      className={`reveal ${inView ? 'is-visible' : ''} ${className}`}
-    >
+    <div ref={ref} style={style} className={classes}>
       {children}
-    </Tag>
+    </div>
   );
 };
 
@@ -286,6 +298,9 @@ export const Home: React.FC = () => {
   const [activeCitation, setActiveCitation] = useState<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
   const streamInterval = useRef<number | null>(null);
+  const askTimeoutRef = useRef<number | null>(null);
+  const voiceTimer1Ref = useRef<number | null>(null);
+  const voiceTimer2Ref = useRef<number | null>(null);
 
   /* Voice showcase simulation state */
   const [voiceOrbState, setVoiceOrbState] = useState<'idle' | 'listening' | 'processing' | 'speaking'>('speaking');
@@ -320,9 +335,14 @@ export const Home: React.FC = () => {
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [demoMessages, isDemoLoading, streamingText]);
 
-  /* Cleanup any in-flight stream on unmount */
-  useEffect(() => () => {
-    if (streamInterval.current) window.clearInterval(streamInterval.current);
+  /* Cleanup any in-flight timers on unmount */
+  useEffect(() => {
+    return () => {
+      if (streamInterval.current) window.clearInterval(streamInterval.current);
+      if (askTimeoutRef.current) window.clearTimeout(askTimeoutRef.current);
+      if (voiceTimer1Ref.current) window.clearTimeout(voiceTimer1Ref.current);
+      if (voiceTimer2Ref.current) window.clearTimeout(voiceTimer2Ref.current);
+    };
   }, []);
 
   const copyEmbedCode = (snippet: string) => {
@@ -343,7 +363,10 @@ export const Home: React.FC = () => {
       : `Great question! yourchatbot instantly searches vector embeddings in Qdrant and returns cited answers for: "${question}".`;
     const citation = match ? match.citation : 'Knowledge-Base / Indexed-Vectors.pdf';
 
-    window.setTimeout(() => {
+    if (streamInterval.current) window.clearInterval(streamInterval.current);
+    if (askTimeoutRef.current) window.clearTimeout(askTimeoutRef.current);
+
+    askTimeoutRef.current = window.setTimeout(() => {
       setIsDemoLoading(false);
       setStreamingText('');
       setActiveCitation(citation || null);
@@ -368,14 +391,17 @@ export const Home: React.FC = () => {
 
   /* Simulate interactive voice turn on click */
   const triggerVoiceSimulation = () => {
+    if (voiceTimer1Ref.current) window.clearTimeout(voiceTimer1Ref.current);
+    if (voiceTimer2Ref.current) window.clearTimeout(voiceTimer2Ref.current);
+
     if (voiceOrbState === 'speaking') {
       setVoiceOrbState('listening');
       setVoiceAudioLevel(15);
       setVoiceTranscript('Listening... Speak now or tap to ask about your documents.');
-      setTimeout(() => {
+      voiceTimer1Ref.current = window.setTimeout(() => {
         setVoiceOrbState('processing');
         setVoiceTranscript('Searching Qdrant vector index & synthesizing response...');
-        setTimeout(() => {
+        voiceTimer2Ref.current = window.setTimeout(() => {
           setVoiceOrbState('speaking');
           setVoiceAudioLevel(65);
           setVoiceTranscript('“Vector search confirmed! Our sub-450ms pipeline handles speech-to-speech with seamless interruption.”');

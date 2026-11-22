@@ -19,12 +19,17 @@ import {
   ShoppingBag,
   Headphones,
   Lock,
-  Trash2
+  Trash2,
+  Sparkles,
+  Plus,
+  X,
+  MessageSquare
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatbotApi, documentApi } from '../api';
 import { useToast } from '../hooks/useToast';
 import { BASE_URL } from '../utils/apiClient';
+import ChatWindow from '../components/ChatWindow';
 
 interface FormValues {
   botName: string;
@@ -37,6 +42,8 @@ interface FormValues {
   openAutomatically: boolean;
   popAfterSeconds: number;
   showWelcomeTooltip: boolean;
+  showFloatingPrompts: boolean;
+  suggestedPrompts: string[];
 }
 
 export const Builder: React.FC = () => {
@@ -69,9 +76,16 @@ export const Builder: React.FC = () => {
       openAutomatically: false,
       popAfterSeconds: 3,
       showWelcomeTooltip: true,
+      showFloatingPrompts: true,
+      suggestedPrompts: [
+        'What services do you offer?',
+        'How do I check my appointment?',
+        'Can I speak with a representative?'
+      ],
     }
   });
 
+  const [newPromptInput, setNewPromptInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -105,6 +119,14 @@ export const Builder: React.FC = () => {
         openAutomatically: chatbotData.open_automatically ?? false,
         popAfterSeconds: chatbotData.pop_after_seconds ?? 3,
         showWelcomeTooltip: chatbotData.show_welcome_tooltip ?? true,
+        showFloatingPrompts: chatbotData.show_floating_prompts ?? true,
+        suggestedPrompts: Array.isArray(chatbotData.suggested_prompts)
+          ? chatbotData.suggested_prompts
+          : [
+              'What services do you offer?',
+              'How do I check my appointment?',
+              'Can I speak with a representative?'
+            ],
       });
     }
   }, [chatbotData, reset]);
@@ -123,6 +145,8 @@ export const Builder: React.FC = () => {
         open_automatically: values.openAutomatically,
         pop_after_seconds: Number(values.popAfterSeconds),
         show_welcome_tooltip: values.showWelcomeTooltip,
+        show_floating_prompts: values.showFloatingPrompts,
+        suggested_prompts: values.suggestedPrompts || [],
         is_public: true,
       };
 
@@ -136,6 +160,7 @@ export const Builder: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['chatbots'] });
       queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
       if (data && data.id) {
+        queryClient.setQueryData(['chatbot', data.id], data);
         queryClient.invalidateQueries({ queryKey: ['chatbot', data.id] });
         setSearchParams({ botId: data.id });
       }
@@ -186,11 +211,48 @@ export const Builder: React.FC = () => {
         openAutomatically: chatbotData.open_automatically ?? false,
         popAfterSeconds: chatbotData.pop_after_seconds ?? 3,
         showWelcomeTooltip: chatbotData.show_welcome_tooltip ?? true,
+        showFloatingPrompts: chatbotData.show_floating_prompts ?? true,
+        suggestedPrompts: Array.isArray(chatbotData.suggested_prompts)
+          ? chatbotData.suggested_prompts
+          : [
+              'What services do you offer?',
+              'How do I check my appointment?',
+              'Can I speak with a representative?'
+            ],
       });
     } else {
       reset();
     }
   };
+
+  const suggestedPrompts = watch('suggestedPrompts') || [];
+
+  const handleAddPrompt = (promptToAdd?: string) => {
+    const text = (promptToAdd || newPromptInput).trim();
+    if (!text) return;
+    if (suggestedPrompts.includes(text)) {
+      toast.info('This question is already added.');
+      return;
+    }
+    setValue('suggestedPrompts', [...suggestedPrompts, text], { shouldDirty: true });
+    if (!promptToAdd) setNewPromptInput('');
+  };
+
+  const handleRemovePrompt = (indexToRemove: number) => {
+    setValue(
+      'suggestedPrompts',
+      suggestedPrompts.filter((_, idx) => idx !== indexToRemove),
+      { shouldDirty: true }
+    );
+  };
+
+  const promptPresets = [
+    'What services do you offer?',
+    'How do I check my appointment?',
+    'Can I speak with a representative?',
+    'Where are you located?',
+    'What are your pricing plans?'
+  ];
 
   const scrollToSection = (section: 'appearance' | 'knowledge' | 'test' | 'deploy') => {
     setActiveSection(section);
@@ -498,6 +560,149 @@ export const Builder: React.FC = () => {
               </select>
             </div>
           </div>
+
+          {/* Floating Prompts Management */}
+          <div className="space-y-4 pt-4 border-t border-[#1C2C4B]">
+            {/* Header with Toggle Switch */}
+            <div className="bg-[#101D39] p-4 rounded-xl border border-[#1C2C4B] flex items-center justify-between gap-4">
+              <div className="space-y-1">
+                <label 
+                  className="text-xs font-bold text-[#F3F6FF] flex items-center gap-2 cursor-pointer select-none" 
+                  onClick={() => setValue('showFloatingPrompts', !watch('showFloatingPrompts'), { shouldDirty: true })}
+                >
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>Floating Suggested Prompts</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                    watch('showFloatingPrompts')
+                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                      : 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                  }`}>
+                    {watch('showFloatingPrompts') ? 'ENABLED' : 'DISABLED'}
+                  </span>
+                </label>
+                <p className="text-[11px] text-[#71829F]">
+                  When enabled, floating question pills hover over the chat input. Visitors click any pill to send that message instantly.
+                </p>
+              </div>
+
+              {/* iOS / modern toggle switch */}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={watch('showFloatingPrompts')}
+                onClick={() => setValue('showFloatingPrompts', !watch('showFloatingPrompts'), { shouldDirty: true })}
+                className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-200 ease-in-out flex-shrink-0 ${
+                  watch('showFloatingPrompts') ? 'bg-[#4F46E5]' : 'bg-[#1C2C4B]'
+                }`}
+                style={{ backgroundColor: watch('showFloatingPrompts') ? currentThemeColor : undefined }}
+                title={watch('showFloatingPrompts') ? 'Click to disable floating prompts' : 'Click to enable floating prompts'}
+              >
+                <div
+                  className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
+                    watch('showFloatingPrompts') ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* If toggle is ON, show prompt editor. If OFF, show helpful note */}
+            {watch('showFloatingPrompts') ? (
+              <div className="space-y-3 bg-[#091121]/60 p-4 rounded-xl border border-[#1C2C4B]/60 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-[#A3B3CF]">Active Floating Questions</span>
+                  <span className="text-[10px] text-indigo-400 font-semibold bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                    {suggestedPrompts.length} questions configured
+                  </span>
+                </div>
+
+                {/* List of active floating prompts */}
+                <div className="flex flex-wrap gap-2 min-h-[44px] p-2.5 bg-[#101D39] border border-[#1C2C4B] rounded-xl items-center">
+                  {suggestedPrompts.length === 0 ? (
+                    <span className="text-xs text-[#71829F] italic px-1">
+                      No questions configured yet. Type a question below or choose from presets.
+                    </span>
+                  ) : (
+                    suggestedPrompts.map((prompt, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 bg-[#142342] hover:bg-[#1a2f58] border border-indigo-500/30 text-indigo-100 px-3 py-1.5 rounded-xl text-xs font-medium shadow-sm transition-all"
+                      >
+                        <MessageSquare className="w-3 h-3 text-indigo-400 flex-shrink-0" />
+                        <span className="max-w-[240px] truncate">{prompt}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePrompt(idx)}
+                          className="text-[#71829F] hover:text-[#FB7185] p-0.5 rounded-md transition-colors"
+                          title="Remove prompt"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Input to add a new floating question */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newPromptInput}
+                    onChange={(e) => setNewPromptInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddPrompt();
+                      }
+                    }}
+                    placeholder="Type a suggested prompt question (e.g. 'How do I check my appointment?')..."
+                    className="flex-1 bg-[#101D39] border border-[#1C2C4B] rounded-xl px-4 py-2.5 text-xs text-[#F3F6FF] placeholder-[#71829F] focus:outline-none focus:border-[#4F46E5]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddPrompt()}
+                    disabled={!newPromptInput.trim()}
+                    className="btn-primary-gradient px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1.5 flex-shrink-0 disabled:opacity-40"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Question
+                  </button>
+                </div>
+
+                {/* Quick recommendation presets */}
+                <div className="space-y-1.5 pt-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#71829F] block">
+                    Quick Preset Recommendations:
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {promptPresets.map((preset, idx) => {
+                      const isAdded = suggestedPrompts.includes(preset);
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleAddPrompt(preset)}
+                          disabled={isAdded}
+                          className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1 ${
+                            isAdded
+                              ? 'bg-[#101D39] border-[#1C2C4B] text-[#71829F] cursor-default opacity-50'
+                              : 'bg-[#142342] border-[#243653] text-[#A3B3CF] hover:text-white hover:border-indigo-400/60 cursor-pointer'
+                          }`}
+                        >
+                          <span>{isAdded ? '✓' : '+'}</span>
+                          <span>{preset}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="p-3 bg-[#101D39]/50 border border-[#1C2C4B] rounded-xl text-xs text-[#71829F] flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-slate-500" />
+                Floating prompt questions are turned off and will not appear above the chat input box.
+              </div>
+            )}
+          </div>
         </div>
 
         {/* SECTION 2: KNOWLEDGE BASE & DOCUMENTS */}
@@ -593,31 +798,57 @@ export const Builder: React.FC = () => {
 
         {/* SECTION 3: TEST & EVALUATE */}
         <div ref={testRef} id="section-test" className="bg-[#0D1730] border border-[#1C2C4B] rounded-2xl p-6 sm:p-7 flex flex-col gap-6 shadow-xl">
-          <div className="flex items-center gap-3 border-b border-[#1C2C4B] pb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#142342] text-indigo-400 border border-[#243653] flex items-center justify-center font-bold">
-              <SearchCode className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-display text-base sm:text-lg font-bold text-[#F3F6FF]">3. Test & Evaluate</h2>
-              <p className="text-xs text-[#71829F]">Test your chatbot in the Dedicated Sandbox Preview page.</p>
-            </div>
-          </div>
-
-          <div className="bg-[#101D39] p-6 rounded-2xl border border-[#1C2C4B] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-            <div className="space-y-1">
-              <span className="font-bold text-[#F3F6FF] block text-sm">Interactive Dedicated Sandbox</span>
-              <p className="text-[#71829F]">Launch the full widget preview sandbox to test user message responses.</p>
+          <div className="flex items-center justify-between border-b border-[#1C2C4B] pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#142342] text-indigo-400 border border-[#243653] flex items-center justify-center font-bold">
+                <SearchCode className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="font-display text-base sm:text-lg font-bold text-[#F3F6FF]">3. Test & Evaluate</h2>
+                <p className="text-xs text-[#71829F]">Test your chatbot with floating prompt suggestions directly below or in the dedicated sandbox.</p>
+              </div>
             </div>
 
             {!isNewBot && (
               <button
                 type="button"
                 onClick={() => window.open(`/preview/${botId}`, '_blank')}
-                className="btn-primary-gradient px-5 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 flex-shrink-0"
+                className="btn-primary-gradient px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 flex-shrink-0"
               >
-                <ExternalLink className="w-4 h-4" /> Open Dedicated Sandbox
+                <ExternalLink className="w-3.5 h-3.5" /> Full Screen Sandbox
               </button>
             )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-[#101D39] p-5 rounded-2xl border border-[#1C2C4B] space-y-3">
+                <span className="font-bold text-[#F3F6FF] block text-sm">Interactive Live Preview</span>
+                <p className="text-xs text-[#71829F] leading-relaxed">
+                  Notice the floating prompt buttons hovering directly above the input box below.
+                  When clicked, each floating prompt immediately submits its message to the chatbot.
+                </p>
+                <div className="text-[11px] text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-3 py-2.5 rounded-xl flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>Click any floating prompt chip above the text field to test instant dispatch.</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7 h-[520px] rounded-2xl overflow-hidden border border-[#1C2C4B] bg-[#080E1B] shadow-2xl flex flex-col">
+              <ChatWindow
+                name={watch('botName') || 'Support Assistant'}
+                welcomeMessage={watch('welcomeMessage') || 'Hi! How can I help you today?'}
+                themeColor={watch('themeColor') || '#4F46E5'}
+                avatar={watch('avatar') || 'support'}
+                bubbleStyle={watch('bubbleStyle') || 'rounded'}
+                chatbotId={botId}
+                interactive={true}
+                showDebugToggle={true}
+                showFloatingPrompts={watch('showFloatingPrompts')}
+                suggestedPrompts={suggestedPrompts}
+              />
+            </div>
           </div>
         </div>
 

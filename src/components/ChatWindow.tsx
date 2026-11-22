@@ -17,6 +17,8 @@ export interface ChatWindowProps {
   showDebugToggle?: boolean;
   onClose?: () => void;
   defaultMode?: 'chat' | 'voice';
+  suggestedPrompts?: string[];
+  showFloatingPrompts?: boolean;
 }
 
 const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
@@ -88,6 +90,8 @@ const ChatWindowInner: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         interactive={config.interactive}
         isStreaming={isStreaming}
         themeColor={config.themeColor}
+        suggestedPrompts={config.suggestedPrompts}
+        showFloatingPrompts={config.showFloatingPrompts}
       />
     </div>
   );
@@ -104,7 +108,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onQueryExecuted,
   showDebugToggle = true,
   onClose,
-  defaultMode = 'chat'
+  defaultMode = 'chat',
+  suggestedPrompts,
+  showFloatingPrompts = true
 }) => {
   const existingContext = useContext(ChatbotContext);
   if (existingContext) {
@@ -122,6 +128,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       interactive={interactive}
       showDebugToggle={showDebugToggle}
       defaultMode={defaultMode}
+      showFloatingPrompts={showFloatingPrompts}
+      suggestedPrompts={suggestedPrompts}
       onQueryExecuted={onQueryExecuted}
     >
       <ChatWindowInner onClose={onClose} />
