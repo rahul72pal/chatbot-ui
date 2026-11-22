@@ -1,4 +1,4 @@
-import { apiClient, BASE_URL } from '../utils/apiClient';
+import { apiClient, BASE_URL, tryRefreshAccessToken } from '../utils/apiClient';
 
 export interface SendMessagePayload {
   message: string;
@@ -44,7 +44,22 @@ export const messageApi = {
       body: JSON.stringify(payload)
     });
 
-    // If /message/stream returns 401 Unauthorized and we have a chatbot_id, retry via public streaming
+    // If /message/stream returns 401 Unauthorized, try refreshing the access token once
+    if (response.status === 401 && token) {
+      const refreshed = await tryRefreshAccessToken();
+      if (refreshed) {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+    }
+
+    // If still unauthorized and we have a chatbot_id, retry via public streaming
     if (response.status === 401 && payload.chatbot_id) {
       console.warn('[ChatStream] /message/stream returned 401; retrying with public chatbot stream endpoint');
       url = `${apiBase}/chatbot/public/${payload.chatbot_id}/chat/stream`;

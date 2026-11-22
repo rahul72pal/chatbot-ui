@@ -44,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     onClose();
     navigate('/login');
   };
